@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Tartil Web & ESP32</title>
+    <style>
+        :root {
+            --primary: #0f766e;
+            --bg: #f0fdfa;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        p.subtitle {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-play {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-play:hover { background-color: #0d5c56; }
+        .btn-stop {
+            background-color: #ef4444;
+            color: white;
+        }
+        .btn-stop:hover { background-color: #dc2626; }
+        
+        /* Status ESP32 */
+        .esp-status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            background-color: #bbb;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .connected { background-color: #22c55e; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🕌 Auto Tartil</h1>
+    <p class="subtitle">Web Player & ESP32 Controller</p>
+
+    <div class="input-group">
+        <label for="surah">Pilih Surah</label>
+        <select id="surah">
+            <option value="001">1. Al-Fatihah</option>
+            <option value="002">2. Al-Baqarah</option>
+            <option value="036">36. Ya-Sin</option>
+            <option value="055">55. Ar-Rahman</option>
+            <option value="067">67. Al-Mulk</option>
+            <option value="112">112. Al-Ikhlas</option>
+            <option value="113">113. Al-Falaq</option>
+            <option value="114">114. An-Nas</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label for="ayah">Ayat (1 - 7)</label>
+        <input type="number" id="ayah" value="1" min="1" max="286">
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-play" onclick="playTartil()">▶ Putar</button>
+        <button class="btn-stop" onclick="stopTartil()">⏹ Stop</button>
+    </div>
+
+    <!-- Audio Element Tersembunyi untuk Browser -->
+    <audio id="audioPlayer"></audio>
+
+    <div class="esp-status">
+        <span class="status-dot" id="statusDot"></span>
+        <strong>Status ESP32:</strong> <span id="statusText">Belum terhubung</span><br>
+        <small>IP ESP32: <input type="text" id="espIp" value="192.168.4.1" style="width: 120px; padding: 2px; margin-top: 5px; font-size: 12px;"></small>
+    </div>
+</div>
+
+<script>
+    const audioPlayer = document.getElementById('audioPlayer');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+
+    // Fungsi untuk mendapatkan URL Audio dari API EveryAyah (Mishary Alafasy)
+    function getAudioUrl(surah, ayah) {
+        // Format: https://everyayah.com/data/Alafasy_128kbps/001001.mp3
+        const paddedAyah = ayah.toString().padStart(3, '0');
+        return `https://everyayah.com/data/Alafasy_128kbps/${surah}${paddedAyah}.mp3`;
+    }
+
+    async function playTartil() {
+        const surah = document.getElementById('surah').value;
+        const ayah = document.getElementById('ayah').value;
+        const audioUrl = getAudioUrl(surah, ayah);
+
+        // 1. Putar di Browser (Web)
+        audioPlayer.src = audioUrl;
+        audioPlayer.play().catch(e => console.log("Autoplay dicegah browser, klik play manual.", e));
+
+        // 2. Kirim Perintah ke ESP32 (Jika ada)
+        sendToESP32('play', audioUrl);
+    }
+
+    function stopTartil() {
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+        sendToESP32('stop', '');
+    }
+
+    // Fungsi mengirim data ke ESP32 via HTTP Request
+    async function sendToESP32(action, url) {
+        const espIp = document.getElementById('espIp').value;
+        const endpoint = `http://${espIp}/${action}?url=${encodeURIComponent(url)}`;
+
+        try {
+            // Menggunakan mode 'no-cors' karena ESP32 biasanya tidak punya header CORS
+            await fetch(endpoint, { mode: 'no-cors' });
+            
+            statusDot.classList.add('connected');
+            statusText.innerText = "Mengirim perintah...";
+            setTimeout(() => { statusText.innerText = "Terhubung (Asumsi)"; }, 1000);
+        } catch (error) {
+            statusDot.classList.remove('connected');
+            statusText.innerText = "Gagal terhubung ke ESP32";
+            console.error("Error ESP32:", error);
+        }
+    }
+</script>
+
+</body>
+</html>
