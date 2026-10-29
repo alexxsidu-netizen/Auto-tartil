@@ -8,14 +8,16 @@
 :root{--accent:#0f766e;--bg:#0b1220;--card:#162033;--text:#e2e8f0;--muted:#94a3b8;--line:#2a3750}
 *{box-sizing:border-box}
 body{margin:0;font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);padding:12px;display:flex;justify-content:center}
-.app{width:100%;max-width:460px}
-h1{font-size:20px;margin:6px 0 10px;text-align:center;color:var(--accent)}
-.clock{background:var(--card);border-radius:16px;padding:18px 10px;text-align:center;margin-bottom:10px;border:1px solid var(--line)}
+.app{width:100%;max-width:480px}
+h1{font-size:20px;margin:4px 0 4px;text-align:center;color:var(--accent)}
+.chip{text-align:center;font-size:12px;color:var(--muted);margin-bottom:8px}
+.chip b{color:var(--accent)}
+.clock{background:var(--card);border-radius:18px;padding:20px 10px;text-align:center;margin-bottom:10px;border:1px solid var(--accent);box-shadow:0 8px 30px rgba(0,0,0,.35)}
 #clkTime{font-size:48px;font-weight:700;letter-spacing:2px;font-variant-numeric:tabular-nums}
 #clkDate{margin-top:4px;font-size:14px;color:var(--muted)}
 .tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:4px}
 .tabs button{flex:0 0 auto;background:var(--card);color:var(--text);border:1px solid var(--line);padding:9px 13px;border-radius:10px;font-size:14px;cursor:pointer}
-.tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.tabs button.on{background:linear-gradient(135deg,var(--accent),#14b8a6);border-color:var(--accent);color:#fff}
 .panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
 .panel.on{display:block}
 label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px}
@@ -24,25 +26,32 @@ input[type=range]{width:100%}
 input[type=color]{width:100%;height:42px;border:none;background:none;padding:0}
 .row{display:flex;gap:8px}.row>*{flex:1}
 .btn{padding:11px;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;color:#fff;background:var(--accent);width:100%;margin-top:10px}
-.btn.red{background:#dc2626}.btn.gray{background:#475569}
-.item{display:flex;justify-content:space-between;align-items:center;padding:10px;border:1px solid var(--line);border-radius:9px;margin-top:6px;font-size:14px;cursor:pointer}
-.item small{color:var(--muted)}
+.btn.red{background:#dc2626}.btn.gray{background:#475569}.btn.blue{background:#2563eb}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:9px;margin-top:6px;font-size:14px;cursor:pointer}
+.item small{color:var(--muted);max-width:55%;text-align:right}
 .chk{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px}
 .chk input{width:18px;height:18px}
 .days{display:flex;gap:4px;margin-top:6px}
 .days label{flex:1;margin:0;text-align:center;border:1px solid var(--line);border-radius:7px;padding:7px 0;font-size:12px;font-weight:400;cursor:pointer}
 .days input{display:none}
-.days input:checked+span{color:#fff;font-weight:700}
-.days label:has(input:checked){background:var(--accent);border-color:var(--accent)}
+.days label:has(input:checked){background:var(--accent);border-color:var(--accent);color:#fff}
 .status{margin-top:10px;font-size:12px;color:var(--muted);text-align:center}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#64748b;margin-right:5px}
 .dot.ok{background:#22c55e}
 .now{font-size:14px;margin:10px 0;color:var(--muted)}
+details{border:1px solid var(--line);border-radius:10px;margin-top:8px;padding:0 12px}
+summary{padding:11px 0;font-weight:700;font-size:14px;cursor:pointer}
+details ol,details ul{margin:0 0 12px;padding-left:20px;font-size:13.5px;line-height:1.55}
+details code,.code{background:#0f1829;padding:2px 6px;border-radius:5px;font-size:12px;word-break:break-all}
+pre{background:#0f1829;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:11.5px;white-space:pre-wrap;word-break:break-all;max-height:220px;overflow:auto;margin:8px 0 0}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
+td,th{border:1px solid var(--line);padding:5px 7px;text-align:left}
 </style>
 </head>
 <body>
 <div class="app">
 <h1>🕌 Auto Tartil ESP32</h1>
+<div class="chip">Jalur koneksi: <b id="modeChip">WiFi</b></div>
 
 <div class="clock" id="clockBox">
   <div id="clkTime">00:00:00</div>
@@ -53,8 +62,11 @@ input[type=color]{width:100%;height:42px;border:none;background:none;padding:0}
   <button data-t="tartil" class="on">🎧 Tartil</button>
   <button data-t="jam">🕒 Jam</button>
   <button data-t="wifi">📶 WiFi</button>
+  <button data-t="ble">🔵 Bluetooth</button>
   <button data-t="warna">🎨 Warna</button>
   <button data-t="jadwal">⏰ Jadwal</button>
+  <button data-t="uji">🧪 Uji Coba</button>
+  <button data-t="tutor">📖 Tutorial</button>
   <button data-t="sistem">⚙️ Sistem</button>
 </div>
 
@@ -123,6 +135,26 @@ input[type=color]{width:100%;height:42px;border:none;background:none;padding:0}
   <button class="btn gray" onclick="saveAp()">Simpan pengaturan AP</button>
 </div>
 
+<!-- BLUETOOTH -->
+<div class="panel" id="p-ble">
+  <div class="now" id="bleState">🔴 Belum terhubung</div>
+  <div class="chk"><input type="checkbox" id="bleAll"><span>Tampilkan semua perangkat Bluetooth</span></div>
+  <button class="btn blue" onclick="bleConnect()">🔵 Cari & sambungkan ESP32</button>
+  <button class="btn red" onclick="bleDisconnect()">Putuskan</button>
+  <label>Tes cepat</label>
+  <div class="row">
+    <button class="btn gray" onclick="bleTest('/api/status')">Status</button>
+    <button class="btn gray" onclick="bleTest('/api/play?surah=1&ayah=1&vol='+S.vol)">Tes putar</button>
+    <button class="btn gray" onclick="bleTest('/api/stop')">Stop</button>
+  </div>
+  <div class="status" id="bleMsg">Syarat: Chrome di Android, Bluetooth HP aktif, halaman dibuka lewat HTTPS atau localhost.</div>
+  <details><summary>UUID untuk sketch ESP32</summary>
+    <ul><li>Service: <span class="code">4fafc201-1fb5-459e-8fcc-c5c9c331914b</span></li>
+    <li>Karakteristik: <span class="code">beb5483e-36e1-4688-b7f5-ea07361b26a8</span></li>
+    <li>Format pesan: JSON satu baris diakhiri newline, contoh <span class="code">{"id":1,"cmd":"/api/status","data":null}</span>. Balasan memakai format JSON yang sama (notify) dengan id yang sama.</li></ul>
+  </details>
+</div>
+
 <!-- WARNA -->
 <div class="panel" id="p-warna">
   <label>Tema cepat</label>
@@ -175,8 +207,117 @@ input[type=color]{width:100%;height:42px;border:none;background:none;padding:0}
   <button class="btn gray" onclick="sendAlarms()">Kirim semua alarm ke ESP32</button>
 </div>
 
+<!-- UJI COBA -->
+<div class="panel" id="p-uji">
+  <div class="now">Tes ini memeriksa apakah HTML-nya benar. Aktifkan simulasi kalau ESP32 sedang mati.</div>
+  <button class="btn blue" style="margin-top:0" onclick="setMode(S.mode==='sim'?'wifi':'sim')" id="btnSim">🧪 Aktifkan simulasi ESP32</button>
+  <button class="btn" onclick="runTests()">▶ Jalankan semua tes</button>
+  <div id="testList"></div>
+  <label>Kirim perintah manual</label>
+  <input type="text" id="cmdPath" value="/api/status">
+  <button class="btn gray" onclick="manualCmd()">Kirim (GET)</button>
+  <pre id="cmdOut">Hasil muncul di sini</pre>
+  <label>Log permintaan & balasan</label>
+  <pre id="logBox">Belum ada aktivitas</pre>
+  <button class="btn gray" onclick="LOG.length=0;$('logBox').textContent='Log dihapus'">Hapus log</button>
+</div>
+
+<!-- TUTORIAL -->
+<div class="panel" id="p-tutor">
+  <details open><summary>1. Yang perlu disiapkan</summary>
+    <ul>
+      <li>ESP-WROOM-32 (ESP32 DevKit) dan kabel micro USB yang mendukung data, bukan kabel charger saja</li>
+      <li>Laptop/PC untuk upload program pertama kali</li>
+      <li>Opsional: modul audio MAX98357A dan speaker 4-8 ohm</li>
+      <li>HP Android dengan Chrome</li>
+    </ul>
+  </details>
+  <details><summary>2. Install Arduino IDE & board ESP32</summary>
+    <ol>
+      <li>Install Arduino IDE di PC.</li>
+      <li>Buka File → Preferences, isi "Additional boards manager URLs" dengan <span class="code">https://espressif.github.io/arduino-esp32/package_esp32_index.json</span></li>
+      <li>Buka Tools → Board → Boards Manager, cari <b>esp32</b>, install "esp32 by Espressif Systems".</li>
+      <li>Install driver USB (CP2102 atau CH340) kalau port COM tidak muncul.</li>
+    </ol>
+  </details>
+  <details><summary>3. Upload sketch ke ESP32</summary>
+    <ol>
+      <li>Colok ESP32 ke PC.</li>
+      <li>Tools → Board → pilih <b>ESP32 Dev Module</b>.</li>
+      <li>Tools → Port → pilih port COM yang muncul.</li>
+      <li>Klik Upload. Kalau macet di "Connecting...", tahan tombol <b>BOOT</b> di board sampai upload jalan, lalu lepas.</li>
+      <li>Buka Serial Monitor (115200) untuk melihat pesan dari ESP32.</li>
+    </ol>
+  </details>
+  <details><summary>4. Konek lewat WiFi (hotspot ESP32)</summary>
+    <ol>
+      <li>Nyalakan ESP32. Cari WiFi bernama <b>AutoTartil</b> di HP (password awal <span class="code">12345678</span>).</li>
+      <li>Sambungkan, pilih tetap terhubung walau tanpa internet.</li>
+      <li>Buka browser: <span class="code">http://192.168.4.1</span> (pakai http, bukan https).</li>
+      <li>Di menu WiFi, scan dan pilih WiFi rumah, isi password, tekan Hubungkan.</li>
+      <li>Catat IP baru ESP32, lalu isi di menu Sistem.</li>
+    </ol>
+  </details>
+  <details><summary>5. Konek lewat Bluetooth</summary>
+    <ol>
+      <li>Aktifkan Bluetooth di HP (dan Lokasi, Android mewajibkannya untuk scan).</li>
+      <li>Buka halaman ini di <b>Chrome Android</b> lewat HTTPS (misalnya hosting Cloudflare Pages) atau localhost.</li>
+      <li>Menu Bluetooth → "Cari & sambungkan ESP32" → pilih perangkat.</li>
+      <li>Jalur koneksi otomatis pindah ke Bluetooth. Coba tombol "Status".</li>
+    </ol>
+    <ul><li>iPhone/Safari tidak mendukung Web Bluetooth.</li>
+    <li>Halaman yang dibuka dari ESP32 (http) tidak bisa memakai Bluetooth, karena butuh HTTPS.</li></ul>
+  </details>
+  <details><summary>6. Cara pakai tiap menu</summary>
+    <ul>
+      <li><b>Tartil</b>: pilih surah, ayat, qari, jumlah ulang, lalu Putar. Ayat berikutnya diputar otomatis.</li>
+      <li><b>Jam</b>: pilih zona waktu dan format. "Sinkron dari waktu HP" mengirim jam HP ke ESP32.</li>
+      <li><b>WiFi</b>: scan jaringan, pilih, isi password, hubungkan.</li>
+      <li><b>Warna</b>: pilih tema atau atur warna, ukuran, font, glow jam.</li>
+      <li><b>Jadwal</b>: buat alarm tartil harian, lalu kirim ke ESP32.</li>
+      <li><b>Sistem</b>: IP ESP32, jalur koneksi, simpan atau reset pengaturan.</li>
+    </ul>
+  </details>
+  <details><summary>7. Uji coba tanpa ESP32 (saat board mati)</summary>
+    <ol>
+      <li>Buka menu <b>Uji Coba</b>.</li>
+      <li>Tekan "Aktifkan simulasi ESP32". Sekarang semua tombol bicara dengan ESP32 virtual di HP.</li>
+      <li>Tekan "Jalankan semua tes". Tanda ✅ berarti benar, ❌ berarti ada yang salah (alasannya tertulis).</li>
+      <li>Coba juga menu WiFi → Scan (data contoh) dan lihat Log untuk memastikan perintah terkirim.</li>
+      <li>Tes "Koneksi ESP32" akan bertanda ⚠️ selama simulasi, karena itu bukan board asli.</li>
+    </ol>
+  </details>
+  <details><summary>8. Kalau ada masalah</summary>
+    <ul>
+      <li><b>Port COM tidak muncul</b>: ganti kabel (harus kabel data), install driver CP2102/CH340.</li>
+      <li><b>HP tidak bisa buka 192.168.4.1</b>: pastikan tersambung ke WiFi AutoTartil, matikan data seluler sebentar, pakai http://.</li>
+      <li><b>Halaman HTTPS tidak bisa kontrol lewat WiFi</b>: browser memblokir (mixed content). Buka halaman dari ESP32 atau pakai Bluetooth.</li>
+      <li><b>Bluetooth tidak muncul</b>: Chrome Android, Bluetooth dan Lokasi aktif, sketch sudah mengiklankan service UUID, atau centang "Tampilkan semua perangkat".</li>
+      <li><b>Audio tidak bunyi</b>: tekan Putar sekali, cek volume media dan internet. Tes "Audio online" di menu Uji Coba membantu.</li>
+      <li><b>Ada tes ❌</b>: baca pesannya dan buka Log di menu Uji Coba.</li>
+    </ul>
+  </details>
+  <details><summary>9. Contoh wiring audio (MAX98357A)</summary>
+    <table>
+      <tr><th>MAX98357A</th><th>ESP32</th></tr>
+      <tr><td>VIN</td><td>VIN (5V) atau 3V3</td></tr>
+      <tr><td>GND</td><td>GND</td></tr>
+      <tr><td>BCLK</td><td>D26</td></tr>
+      <tr><td>LRC</td><td>D25</td></tr>
+      <tr><td>DIN</td><td>D22</td></tr>
+    </table>
+    <div class="status" style="text-align:left;margin-bottom:12px">Hanya contoh. Pin bisa diubah di sketch, sesuaikan dengan modul yang kamu pakai.</div>
+  </details>
+</div>
+
 <!-- SISTEM -->
 <div class="panel" id="p-sistem">
+  <label>Jalur koneksi</label>
+  <select id="mode">
+    <option value="wifi">WiFi (IP ESP32)</option>
+    <option value="ble">Bluetooth</option>
+    <option value="sim">Simulasi (tanpa ESP32)</option>
+  </select>
   <label>IP ESP32</label><input type="text" id="espIp" placeholder="192.168.4.1">
   <button class="btn" onclick="checkEsp()">Tes koneksi</button>
   <button class="btn gray" onclick="saveSettings(true)">Simpan semua pengaturan</button>
@@ -190,6 +331,7 @@ input[type=color]{width:100%;height:42px;border:none;background:none;padding:0}
 
 <script>
 const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const SURAH="Al-Fatihah:7,Al-Baqarah:286,Ali Imran:200,An-Nisa:176,Al-Maidah:120,Al-Anam:165,Al-Araf:206,Al-Anfal:75,At-Taubah:129,Yunus:109,Hud:123,Yusuf:111,Ar-Rad:43,Ibrahim:52,Al-Hijr:99,An-Nahl:128,Al-Isra:111,Al-Kahfi:110,Maryam:98,Taha:135,Al-Anbiya:112,Al-Hajj:78,Al-Mukminun:118,An-Nur:64,Al-Furqan:77,Asy-Syuara:227,An-Naml:93,Al-Qasas:88,Al-Ankabut:69,Ar-Rum:60,Luqman:34,As-Sajdah:30,Al-Ahzab:73,Saba:54,Fatir:45,Ya-Sin:83,As-Saffat:182,Sad:88,Az-Zumar:75,Gafir:85,Fussilat:54,Asy-Syura:53,Az-Zukhruf:89,Ad-Dukhan:59,Al-Jasiyah:37,Al-Ahqaf:35,Muhammad:38,Al-Fath:29,Al-Hujurat:18,Qaf:45,Az-Zariyat:60,At-Tur:49,An-Najm:62,Al-Qamar:55,Ar-Rahman:78,Al-Waqiah:96,Al-Hadid:29,Al-Mujadalah:22,Al-Hasyr:24,Al-Mumtahanah:13,As-Saff:14,Al-Jumuah:11,Al-Munafiqun:11,At-Tagabun:18,At-Talaq:12,At-Tahrim:12,Al-Mulk:30,Al-Qalam:52,Al-Haqqah:52,Al-Maarij:44,Nuh:28,Al-Jinn:28,Al-Muzzammil:20,Al-Muddassir:56,Al-Qiyamah:40,Al-Insan:31,Al-Mursalat:50,An-Naba:40,An-Naziat:46,Abasa:42,At-Takwir:29,Al-Infitar:19,Al-Mutaffifin:36,Al-Insyiqaq:25,Al-Buruj:22,At-Tariq:17,Al-Ala:19,Al-Gasyiyah:26,Al-Fajr:30,Al-Balad:20,Asy-Syams:15,Al-Lail:21,Ad-Duha:11,Al-Insyirah:8,At-Tin:8,Al-Alaq:19,Al-Qadr:5,Al-Bayyinah:8,Az-Zalzalah:8,Al-Adiyat:11,Al-Qariah:11,At-Takasur:8,Al-Asr:3,Al-Humazah:9,Al-Fil:5,Quraisy:4,Al-Maun:7,Al-Kausar:3,Al-Kafirun:6,An-Nasr:3,Al-Masad:5,Al-Ikhlas:4,Al-Falaq:5,An-Nas:6".split(',').map(s=>{const[a,b]=s.split(':');return{n:a,c:+b}});
 const HARI=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 const THEMES={
@@ -199,13 +341,18 @@ const THEMES={
  putih:{cBg:'#f1f5f9',cBox:'#ffffff',cAccent:'#0f766e',cClock:'#0f172a',cDate:'#64748b'},
  merah:{cBg:'#1f0a0e',cBox:'#3b0f18',cAccent:'#be123c',cClock:'#ffe4e6',cDate:'#fda4af'}
 };
-const DEF={ip:location.protocol==='file:'?'192.168.4.1':location.host,tz:'7',fmt:'24',showSec:true,showDate:true,
+const DEF={mode:'wifi',ip:location.protocol==='file:'?'192.168.4.1':(location.host||'192.168.4.1'),tz:'7',fmt:'24',showSec:true,showDate:true,
  cBg:'#0b1220',cBox:'#162033',cAccent:'#0f766e',cClock:'#ffffff',cDate:'#94a3b8',fontClk:"'Segoe UI',Tahoma,sans-serif",
  clkSize:48,glow:0,bright:100,vol:80,qari:'Alafasy_128kbps',surah:1,ayah:1,ayahEnd:7,repeat:1,apName:'AutoTartil',apPass:'12345678'};
 let S=Object.assign({},DEF), alarms=[], timeOffsetMs=0;
 try{Object.assign(S,JSON.parse(localStorage.getItem('tartilS')||'{}'));alarms=JSON.parse(localStorage.getItem('tartilAl')||'[]')}catch(e){}
+if(S.mode==='ble')S.mode='wifi'; // Bluetooth harus disambung ulang manual
 
-/* ---------- init UI ---------- */
+/* ---------- log ---------- */
+const LOG=[];
+function log(t,m){LOG.unshift(new Date().toLocaleTimeString()+' '+t+' '+m);if(LOG.length>60)LOG.pop();const el=$('logBox');if(el)el.textContent=LOG.join('\n')}
+
+/* ---------- UI init ---------- */
 SURAH.forEach((s,i)=>{const o=`<option value="${i+1}">${i+1}. ${s.n}</option>`;$('surah').insertAdjacentHTML('beforeend',o);$('alSurah').insertAdjacentHTML('beforeend',o)});
 HARI.forEach((h,i)=>$('alDays').insertAdjacentHTML('beforeend',`<label><input type="checkbox" value="${i}" checked><span>${h}</span></label>`));
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
@@ -213,13 +360,13 @@ document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));
  b.classList.add('on');$('p-'+b.dataset.t).classList.add('on')});
 
-const FIELDS=['tz','fmt','cBg','cBox','cAccent','cClock','cDate','fontClk','clkSize','glow','bright','vol','qari','surah','ayah','ayahEnd','repeat','apName','apPass'];
+const FIELDS=['mode','tz','fmt','cBg','cBox','cAccent','cClock','cDate','fontClk','clkSize','glow','bright','vol','qari','surah','ayah','ayahEnd','repeat','apName','apPass'];
 const CHK=['showSec','showDate'];
 function loadUI(){
  $('espIp').value=S.ip;
  FIELDS.forEach(k=>{if($(k))$(k).value=S[k]});
  CHK.forEach(k=>$(k).checked=!!S[k]);
- syncLabels();applyStyle();
+ syncLabels();applyStyle();updMode();
 }
 function readUI(){
  S.ip=$('espIp').value.trim()||DEF.ip;
@@ -241,26 +388,32 @@ function applyStyle(){
  r.setProperty('--text',light?'#0f172a':'#e2e8f0');
  r.setProperty('--line',light?'#cbd5e1':'#2a3750');
  r.setProperty('--muted',light?'#64748b':'#94a3b8');
- document.querySelectorAll('select,input[type=text],input[type=password],input[type=number],input[type=time],input[type=datetime-local]').forEach(e=>e.style.background=light?'#f8fafc':'#0f1829');
+ document.querySelectorAll('select,input[type=text],input[type=password],input[type=number],input[type=time],input[type=datetime-local],pre,.code').forEach(e=>e.style.background=light?'#f1f5f9':'#0f1829');
  $('clockBox').style.background=S.cBox;
  const t=$('clkTime');t.style.color=S.cClock;t.style.fontFamily=S.fontClk;t.style.fontSize=S.clkSize+'px';
  t.style.textShadow=S.glow>0?`0 0 ${S.glow}px ${S.cClock}`:'none';
  $('clkDate').style.color=S.cDate;$('clkDate').style.display=S.showDate?'block':'none';
 }
+function updMode(){
+ $('modeChip').textContent={wifi:'WiFi',ble:'Bluetooth',sim:'Simulasi (tanpa ESP32)'}[S.mode]||S.mode;
+ $('btnSim').textContent=S.mode==='sim'?'⏹ Matikan simulasi ESP32':'🧪 Aktifkan simulasi ESP32';
+ if($('mode'))$('mode').value=S.mode;
+}
+function setMode(m){
+ S.mode=m;persist();updMode();
+ if(m==='sim')setConn(true);else if(m==='wifi')checkEsp();else setConn(!!ble.chr);
+}
 document.querySelectorAll('input,select').forEach(e=>{
- e.addEventListener('input',()=>{readUI();syncLabels();applyStyle();persist()});
+ e.addEventListener('input',()=>{readUI();syncLabels();applyStyle();updMode();persist();if(e.id==='mode')setMode(S.mode)});
 });
 $('theme').onchange=function(){const t=THEMES[this.value];if(!t)return;Object.keys(t).forEach(k=>{$(k).value=t[k]});readUI();applyStyle();persist()};
 function persist(){localStorage.setItem('tartilS',JSON.stringify(S));localStorage.setItem('tartilAl',JSON.stringify(alarms))}
 
 /* ---------- jam ---------- */
-function nowDate(){
- const utc=Date.now()+timeOffsetMs;
- return new Date(utc+(+S.tz)*3600000);
-}
+function nowDate(){return new Date(Date.now()+timeOffsetMs+(+S.tz)*3600000)}
 const BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const HR=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-function p2(n){return String(n).padStart(2,'0')}
+const p2=n=>String(n).padStart(2,'0');
 function tick(){
  const d=nowDate();let h=d.getUTCHours(),suf='';
  if(S.fmt==='12'){suf=h>=12?' PM':' AM';h=h%12||12}
@@ -270,21 +423,108 @@ function tick(){
 }
 setInterval(tick,1000);
 
-/* ---------- ESP API ---------- */
-async function api(path,opt={}){
+/* ---------- ESP32 virtual (simulasi) ---------- */
+const SIM={wifi:{ssid:'WiFi_Rumah',ip:'192.168.1.50',rssi:-52}};
+function mock(path,body){
+ const p=path.split('?')[0];
+ switch(p){
+  case '/api/status':return{ok:true,fw:'SIM-1.0',mode:'SIMULASI',ip:'192.168.4.1',uptime:Math.floor(performance.now()/1000)};
+  case '/api/scan':return[{ssid:'WiFi_Rumah',rssi:-45,enc:true},{ssid:'Masjid_Al-Ikhlas',rssi:-60,enc:true},{ssid:'Warung_Free',rssi:-78,enc:false}];
+  case '/api/wifi':if(body){SIM.wifi.ssid=body.ssid;return{ok:true}}return Object.assign({ok:true},SIM.wifi);
+  default:return{ok:true,path:p};
+ }
+}
+
+/* ---------- transport: WiFi / Bluetooth / Simulasi ---------- */
+function setConn(ok){
+ $('dot').classList.toggle('ok',ok);
+ const m=S.mode;
+ $('stText').textContent=m==='sim'?'Mode simulasi (ESP32 virtual)':m==='ble'?(ok?'Bluetooth: '+((ble.dev&&ble.dev.name)||'ESP32'):'Bluetooth belum terhubung'):(ok?`Terhubung ke ESP32 (${S.ip})`:`ESP32 tidak terjangkau (${S.ip})`);
+}
+async function wifiCall(path,opt){
  const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),5000);
  try{
   const r=await fetch('http://'+S.ip+path,Object.assign({signal:ctl.signal},opt));
   clearTimeout(to);setConn(true);
   const t=await r.text();try{return JSON.parse(t)}catch(e){return t||true}
- }catch(e){clearTimeout(to);setConn(false);return null}
+ }catch(e){
+  clearTimeout(to);setConn(false);
+  if(location.protocol==='https:')log('!','Halaman HTTPS tidak boleh akses http://IP. Buka halaman dari ESP32 atau pakai Bluetooth.');
+  return null;
+ }
 }
-function post(path,obj){return api(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)})}
-function setConn(ok){$('dot').classList.toggle('ok',ok);$('stText').textContent=ok?`Terhubung ke ESP32 (${S.ip})`:`ESP32 tidak terjangkau (${S.ip})`}
+async function api(path,opt={}){
+ const body=opt.body?JSON.parse(opt.body):null;
+ log('→',`${opt.method||'GET'} ${path} ${body?JSON.stringify(body).slice(0,80):''}`);
+ let res=null;
+ if(S.mode==='sim'){await sleep(250);res=mock(path,body);setConn(true)}
+ else if(S.mode==='ble'){res=await bleCall(path,body)}
+ else res=await wifiCall(path,opt);
+ log('←',res===null?'GAGAL (tidak ada balasan)':JSON.stringify(res).slice(0,100));
+ return res;
+}
+const post=(path,obj)=>api(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
+
+/* ---------- Bluetooth (Web Bluetooth / BLE) ---------- */
+const SVC='4fafc201-1fb5-459e-8fcc-c5c9c331914b',CHR='beb5483e-36e1-4688-b7f5-ea07361b26a8';
+const ble={dev:null,chr:null,buf:'',pend:{},n:0};
+function bleMsg(t){$('bleMsg').textContent=t;log('BLE',t)}
+function updBle(){
+ $('bleState').textContent=ble.chr?'🟢 Terhubung: '+(ble.dev.name||'ESP32'):'🔴 Belum terhubung';
+ setConn(!!ble.chr);
+}
+async function bleConnect(){
+ if(!navigator.bluetooth){bleMsg('Browser ini tidak mendukung Web Bluetooth. Pakai Chrome di Android.');return}
+ if(!window.isSecureContext){bleMsg('Web Bluetooth butuh HTTPS atau localhost. Halaman dari http://192.168.4.1 tidak bisa.');return}
+ try{
+  bleMsg('Memilih perangkat...');
+  const opts=$('bleAll').checked?{acceptAllDevices:true,optionalServices:[SVC]}:{filters:[{services:[SVC]}]};
+  const dev=await navigator.bluetooth.requestDevice(opts);
+  dev.addEventListener('gattserverdisconnected',()=>{ble.chr=null;bleMsg('Terputus dari ESP32');updBle()});
+  bleMsg('Menyambung...');
+  const srv=await dev.gatt.connect();
+  const svc=await srv.getPrimaryService(SVC);
+  const chr=await svc.getCharacteristic(CHR);
+  await chr.startNotifications();
+  chr.addEventListener('characteristicvaluechanged',bleRx);
+  ble.dev=dev;ble.chr=chr;ble.buf='';
+  S.mode='ble';persist();updMode();updBle();
+  bleMsg('Terhubung ke '+(dev.name||'ESP32'));
+ }catch(e){bleMsg('Gagal: '+(e.message||e))}
+}
+function bleDisconnect(){if(ble.dev&&ble.dev.gatt.connected)ble.dev.gatt.disconnect();ble.chr=null;updBle()}
+function bleRx(ev){
+ ble.buf+=new TextDecoder().decode(ev.target.value);
+ let i;
+ while((i=ble.buf.indexOf('\n'))>=0){
+  const line=ble.buf.slice(0,i).trim();ble.buf=ble.buf.slice(i+1);
+  if(!line)continue;
+  try{const m=JSON.parse(line);if(ble.pend[m.id]){ble.pend[m.id](m.data!==undefined?m.data:m);delete ble.pend[m.id]}}catch(e){log('BLE','Balasan bukan JSON: '+line.slice(0,60))}
+ }
+}
+async function bleCall(path,body){
+ if(!ble.chr){setConn(false);return null}
+ const id=++ble.n,enc=new TextEncoder();
+ const bytes=enc.encode(JSON.stringify({id,cmd:path,data:body})+'\n');
+ try{
+  for(let i=0;i<bytes.length;i+=20)await ble.chr.writeValue(bytes.slice(i,i+20));
+ }catch(e){setConn(false);return null}
+ setConn(true);
+ return new Promise(res=>{
+  ble.pend[id]=res;
+  setTimeout(()=>{if(ble.pend[id]){delete ble.pend[id];res({ok:true,note:'terkirim, tanpa balasan'})}},4000);
+ });
+}
+async function bleTest(path){
+ if(!ble.chr){bleMsg('Belum terhubung ke ESP32');return}
+ const r=await bleCall(path,null);bleMsg('Balasan: '+JSON.stringify(r));
+}
+
+/* ---------- fungsi ESP ---------- */
 async function checkEsp(){
  $('sysInfo').textContent='Mengecek...';
  const r=await api('/api/status');
- $('sysInfo').textContent=r?('Berhasil. '+(typeof r==='object'?JSON.stringify(r):r)):'Gagal. Pastikan HP satu jaringan dengan ESP32 dan IP benar.';
+ $('sysInfo').textContent=r?('Berhasil. '+(typeof r==='object'?JSON.stringify(r):r)):'Gagal. Pastikan ESP32 menyala, HP satu jaringan dengan ESP32, dan IP benar.';
 }
 function espCmd(c){api('/api/'+c).then(r=>$('sysInfo').textContent=r?'Perintah terkirim':'Gagal mengirim')}
 function saveSettings(send){
@@ -293,7 +533,6 @@ function saveSettings(send){
 }
 function resetAll(){localStorage.clear();S=Object.assign({},DEF);alarms=[];loadUI();renderAlarms()}
 
-/* ---------- atur waktu ---------- */
 function syncPhoneTime(){
  timeOffsetMs=0;
  post('/api/time',{epoch:Math.floor(Date.now()/1000),tz:+S.tz}).then(r=>alert(r?'Waktu HP dikirim ke ESP32':'ESP32 tidak terjangkau. Jam di halaman ini tetap memakai waktu HP.'));
@@ -306,24 +545,23 @@ function setManualTime(){
  post('/api/time',{epoch,tz:+S.tz}).then(r=>alert(r?'Waktu manual dikirim ke ESP32':'ESP32 tidak terjangkau. Jam halaman ini sudah mengikuti waktu manual.'));
 }
 
-/* ---------- WiFi ---------- */
 async function scanWifi(){
  $('wifiList').innerHTML='<div class="status">Memindai...</div>';
- let list=await api('/api/scan');
- let demo=false;
- if(!Array.isArray(list)){demo=true;list=[{ssid:'WiFi_Rumah',rssi:-45,enc:true},{ssid:'Masjid_Al-Ikhlas',rssi:-60,enc:true},{ssid:'Warung_Free',rssi:-78,enc:false}]}
+ let list=await api('/api/scan'),note='';
+ if(S.mode==='sim')note='Data simulasi';
+ if(!Array.isArray(list)){note='Tidak ada balasan dari ESP32, ini data contoh (demo)';list=[{ssid:'WiFi_Rumah',rssi:-45,enc:true},{ssid:'Masjid_Al-Ikhlas',rssi:-60,enc:true},{ssid:'Warung_Free',rssi:-78,enc:false}]}
  list.sort((a,b)=>b.rssi-a.rssi);
- $('wifiList').innerHTML=(demo?'<div class="status">ESP32 tidak terjangkau, ini data contoh (demo)</div>':'')+
+ $('wifiList').innerHTML=(note?`<div class="status">${note}</div>`:'')+
  list.map(w=>`<div class="item" data-s="${encodeURIComponent(w.ssid)}"><span>${w.enc?'🔒':'🔓'} ${esc(w.ssid)}</span><small>${bars(w.rssi)} ${w.rssi} dBm</small></div>`).join('');
  document.querySelectorAll('#wifiList .item').forEach(i=>i.onclick=()=>{$('ssid').value=decodeURIComponent(i.dataset.s);$('wpass').focus()});
 }
-function bars(r){return r>-55?'▂▄▆█':r>-67?'▂▄▆':r>-80?'▂▄':'▂'}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+const bars=r=>r>-55?'▂▄▆█':r>-67?'▂▄▆':r>-80?'▂▄':'▂';
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function connectWifi(){
  const ssid=$('ssid').value.trim();if(!ssid){alert('Isi nama WiFi');return}
  $('wifiInfo').textContent='Menghubungkan ESP32...';
  const r=await post('/api/wifi',{ssid,pass:$('wpass').value});
- $('wifiInfo').textContent=r?'Perintah terkirim. Jika berhasil, ESP32 akan dapat IP baru (cek di Serial Monitor atau router), lalu isi IP baru di menu Sistem.':'Gagal mengirim ke ESP32.';
+ $('wifiInfo').textContent=r?'Perintah terkirim. Jika berhasil, ESP32 dapat IP baru (lihat Serial Monitor atau router), lalu isi IP itu di menu Sistem.':'Gagal mengirim ke ESP32.';
 }
 async function wifiStatus(){
  const r=await api('/api/wifi');
@@ -341,7 +579,7 @@ const aUrl=(s,a)=>`https://everyayah.com/data/${S.qari}/${String(s).padStart(3,'
 function startPlay(){
  readUI();
  const s=+S.surah,max=SURAH[s-1].c;
- let a=Math.min(Math.max(+S.ayah||1,1),max),e=Math.min(Math.max(+S.ayahEnd||a,a),max);
+ const a=Math.min(Math.max(+S.ayah||1,1),max),e=Math.min(Math.max(+S.ayahEnd||a,a),max);
  q={s,a,e,rep:Math.max(+S.repeat||1,1),left:Math.max(+S.repeat||1,1),on:true};
  playCur();
 }
@@ -377,7 +615,7 @@ function addAlarm(){
  persist();renderAlarms();
 }
 function renderAlarms(){
- $('alList').innerHTML=alarms.map(a=>`<div class="item"><span>${a.on?'🔔':'🔕'} <b>${a.time}</b><br><small>${SURAH[a.surah-1].n} ${a.ayah}-${a.end} · ${a.days.map(d=>HARI[d]).join(',')}</small></span><span><button style="border:none;background:none;font-size:18px" onclick="toggleAlarm(${a.id})">${a.on?'⏸':'▶'}</button><button style="border:none;background:none;font-size:18px" onclick="delAlarm(${a.id})">🗑</button></span></div>`).join('');
+ $('alList').innerHTML=alarms.map(a=>`<div class="item" style="cursor:default"><span>${a.on?'🔔':'🔕'} <b>${a.time}</b><br><small style="max-width:none;text-align:left">${SURAH[a.surah-1].n} ${a.ayah}-${a.end} · ${a.days.map(d=>HARI[d]).join(',')}</small></span><span><button style="border:none;background:none;font-size:18px" onclick="toggleAlarm(${a.id})">${a.on?'⏸':'▶'}</button><button style="border:none;background:none;font-size:18px" onclick="delAlarm(${a.id})">🗑</button></span></div>`).join('');
 }
 function toggleAlarm(id){const a=alarms.find(x=>x.id===id);if(a){a.on=!a.on;persist();renderAlarms()}}
 function delAlarm(id){alarms=alarms.filter(x=>x.id!==id);persist();renderAlarms()}
@@ -391,8 +629,55 @@ function checkAlarms(d){
 }
 function sendAlarms(){post('/api/alarms',alarms).then(r=>alert(r?'Alarm terkirim ke ESP32':'ESP32 tidak terjangkau'))}
 
+/* ---------- uji coba ---------- */
+function beep(){
+ const C=window.AudioContext||window.webkitAudioContext;if(!C)throw'AudioContext tidak didukung';
+ const c=new C(),o=c.createOscillator(),g=c.createGain();
+ o.frequency.value=880;g.gain.value=.2;o.connect(g);g.connect(c.destination);o.start();
+ setTimeout(()=>{o.stop();c.close()},400);
+}
+function testAudio(){
+ return new Promise((res,rej)=>{
+  const a=new Audio();
+  const t=setTimeout(()=>{a.src='';rej('Timeout 8 detik, cek internet')},8000);
+  a.preload='auto';
+  a.onloadedmetadata=()=>{clearTimeout(t);res('File audio berhasil dimuat')};
+  a.onerror=()=>{clearTimeout(t);rej('Gagal memuat audio (internet/qari)')};
+  a.src=aUrl(1,1);a.load();
+ });
+}
+const TESTS=[
+ {n:'Penyimpanan HP',f:async()=>{localStorage.setItem('_t','1');const ok=localStorage.getItem('_t')==='1';localStorage.removeItem('_t');if(!ok)throw'Tidak bisa menyimpan';return'OK'}},
+ {n:'Data surah (114 surah, 6236 ayat)',f:async()=>{const t=SURAH.reduce((a,s)=>a+s.c,0);if(SURAH.length!==114||t!==6236)throw`Salah: ${SURAH.length} surah, ${t} ayat`;return'Benar'}},
+ {n:'Jam & zona waktu',f:async()=>{const exp=new Date(Date.now()+timeOffsetMs+(+S.tz)*3600000).getUTCHours();if(exp!==nowDate().getUTCHours())throw'Jam tidak cocok';return`${$('clkTime').textContent} (UTC+${S.tz})`}},
+ {n:'Format URL audio',f:async()=>{const a=aUrl(1,1),b=aUrl(114,6);if(!a.endsWith('/001001.mp3')||!b.endsWith('/114006.mp3'))throw'Format URL salah';return'Benar'}},
+ {n:'Audio online (internet)',f:testAudio},
+ {n:'Speaker HP (nada bip)',f:async()=>{beep();return'Bip diputar, terdengar = OK'}},
+ {n:'Dukungan Bluetooth',f:async()=>{if(!navigator.bluetooth)return{warn:'Browser tanpa Web Bluetooth (pakai Chrome Android)'};if(!window.isSecureContext)return{warn:'Perlu HTTPS/localhost'};return'Didukung'}},
+ {n:'Simulasi API ESP32',f:async()=>{
+  const c=[['/api/status'],['/api/scan'],['/api/wifi'],['/api/wifi',{ssid:'x',pass:'y'}],['/api/time',{epoch:1}],['/api/settings',{}],['/api/play?surah=1&ayah=1'],['/api/stop'],['/api/volume?v=50'],['/api/alarms',[]],['/api/ap',{}],['/api/restart']];
+  for(const [p,b] of c){const r=mock(p,b);if(!r)throw'Gagal: '+p;if(p==='/api/scan'&&!Array.isArray(r))throw'Scan bukan array'}
+  return c.length+' endpoint OK'}},
+ {n:'Koneksi ESP32 (jalur aktif)',f:async()=>{
+  if(S.mode==='sim')return{warn:'Masih simulasi, belum ESP32 asli'};
+  const r=await api('/api/status');if(!r)throw'Tidak ada balasan ('+S.mode+')';return'ESP32 membalas'}}
+];
+$('testList').innerHTML=TESTS.map((t,i)=>`<div class="item" style="cursor:default"><span>${t.n}</span><small id="t${i}">-</small></div>`).join('');
+async function runTests(){
+ for(let i=0;i<TESTS.length;i++){
+  const el=$('t'+i);el.textContent='⏳';
+  try{const r=await TESTS[i].f();el.textContent=(r&&r.warn)?'⚠️ '+r.warn:'✅ '+(r||'OK')}
+  catch(e){el.textContent='❌ '+((e&&e.message)||e)}
+ }
+}
+async function manualCmd(){
+ const r=await api($('cmdPath').value.trim());
+ $('cmdOut').textContent=r===null?'Tidak ada balasan':(typeof r==='object'?JSON.stringify(r,null,1):String(r));
+}
+
 /* ---------- start ---------- */
-loadUI();renderAlarms();tick();checkEsp();
+loadUI();renderAlarms();tick();
+if(S.mode==='sim')setConn(true);else if(S.mode==='wifi')checkEsp();
 </script>
 </body>
 </html>
