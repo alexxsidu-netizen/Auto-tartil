@@ -1,199 +1,398 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Tartil Web & ESP32</title>
-    <style>
-        :root {
-            --primary: #0f766e;
-            --bg: #f0fdfa;
-            --card: #ffffff;
-            --text: #1e293b;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: var(--card);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-        h1 {
-            color: var(--primary);
-            margin-bottom: 5px;
-            font-size: 24px;
-        }
-        p.subtitle {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 25px;
-        }
-        .input-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        select, input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-play {
-            background-color: var(--primary);
-            color: white;
-        }
-        .btn-play:hover { background-color: #0d5c56; }
-        .btn-stop {
-            background-color: #ef4444;
-            color: white;
-        }
-        .btn-stop:hover { background-color: #dc2626; }
-        
-        /* Status ESP32 */
-        .esp-status {
-            margin-top: 20px;
-            padding: 10px;
-            background: #f1f5f9;
-            border-radius: 8px;
-            font-size: 13px;
-        }
-        .status-dot {
-            height: 10px;
-            width: 10px;
-            background-color: #bbb;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-        }
-        .connected { background-color: #22c55e; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Tartil ESP32</title>
+<style>
+:root{--accent:#0f766e;--bg:#0b1220;--card:#162033;--text:#e2e8f0;--muted:#94a3b8;--line:#2a3750}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);padding:12px;display:flex;justify-content:center}
+.app{width:100%;max-width:460px}
+h1{font-size:20px;margin:6px 0 10px;text-align:center;color:var(--accent)}
+.clock{background:var(--card);border-radius:16px;padding:18px 10px;text-align:center;margin-bottom:10px;border:1px solid var(--line)}
+#clkTime{font-size:48px;font-weight:700;letter-spacing:2px;font-variant-numeric:tabular-nums}
+#clkDate{margin-top:4px;font-size:14px;color:var(--muted)}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:4px}
+.tabs button{flex:0 0 auto;background:var(--card);color:var(--text);border:1px solid var(--line);padding:9px 13px;border-radius:10px;font-size:14px;cursor:pointer}
+.tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.panel.on{display:block}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px}
+select,input[type=text],input[type=password],input[type=number],input[type=time],input[type=datetime-local]{width:100%;padding:10px;border-radius:9px;border:1px solid var(--line);background:#0f1829;color:var(--text);font-size:15px}
+input[type=range]{width:100%}
+input[type=color]{width:100%;height:42px;border:none;background:none;padding:0}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.btn{padding:11px;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;color:#fff;background:var(--accent);width:100%;margin-top:10px}
+.btn.red{background:#dc2626}.btn.gray{background:#475569}
+.item{display:flex;justify-content:space-between;align-items:center;padding:10px;border:1px solid var(--line);border-radius:9px;margin-top:6px;font-size:14px;cursor:pointer}
+.item small{color:var(--muted)}
+.chk{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px}
+.chk input{width:18px;height:18px}
+.days{display:flex;gap:4px;margin-top:6px}
+.days label{flex:1;margin:0;text-align:center;border:1px solid var(--line);border-radius:7px;padding:7px 0;font-size:12px;font-weight:400;cursor:pointer}
+.days input{display:none}
+.days input:checked+span{color:#fff;font-weight:700}
+.days label:has(input:checked){background:var(--accent);border-color:var(--accent)}
+.status{margin-top:10px;font-size:12px;color:var(--muted);text-align:center}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#64748b;margin-right:5px}
+.dot.ok{background:#22c55e}
+.now{font-size:14px;margin:10px 0;color:var(--muted)}
+</style>
 </head>
 <body>
+<div class="app">
+<h1>🕌 Auto Tartil ESP32</h1>
 
-<div class="container">
-    <h1>🕌 Auto Tartil</h1>
-    <p class="subtitle">Web Player & ESP32 Controller</p>
+<div class="clock" id="clockBox">
+  <div id="clkTime">00:00:00</div>
+  <div id="clkDate"></div>
+</div>
 
-    <div class="input-group">
-        <label for="surah">Pilih Surah</label>
-        <select id="surah">
-            <option value="001">1. Al-Fatihah</option>
-            <option value="002">2. Al-Baqarah</option>
-            <option value="036">36. Ya-Sin</option>
-            <option value="055">55. Ar-Rahman</option>
-            <option value="067">67. Al-Mulk</option>
-            <option value="112">112. Al-Ikhlas</option>
-            <option value="113">113. Al-Falaq</option>
-            <option value="114">114. An-Nas</option>
-        </select>
-    </div>
+<div class="tabs" id="tabs">
+  <button data-t="tartil" class="on">🎧 Tartil</button>
+  <button data-t="jam">🕒 Jam</button>
+  <button data-t="wifi">📶 WiFi</button>
+  <button data-t="warna">🎨 Warna</button>
+  <button data-t="jadwal">⏰ Jadwal</button>
+  <button data-t="sistem">⚙️ Sistem</button>
+</div>
 
-    <div class="input-group">
-        <label for="ayah">Ayat (1 - 7)</label>
-        <input type="number" id="ayah" value="1" min="1" max="286">
-    </div>
+<!-- TARTIL -->
+<div class="panel on" id="p-tartil">
+  <label>Surah</label><select id="surah"></select>
+  <div class="row">
+    <div><label id="lbAyah">Ayat awal</label><input type="number" id="ayah" value="1" min="1"></div>
+    <div><label>Ayat akhir</label><input type="number" id="ayahEnd" value="1" min="1"></div>
+  </div>
+  <label>Qari</label>
+  <select id="qari">
+    <option value="Alafasy_128kbps">Mishary Alafasy</option>
+    <option value="Abdul_Basit_Murattal_192kbps">Abdul Basit (Murattal)</option>
+    <option value="Husary_128kbps">Mahmoud Al-Husary</option>
+    <option value="Minshawy_Murattal_128kbps">Al-Minshawi (Murattal)</option>
+    <option value="Abdurrahmaan_As-Sudais_192kbps">Abdurrahman As-Sudais</option>
+    <option value="Saood_ash-Shuraym_128kbps">Saud Asy-Syuraim</option>
+  </select>
+  <div class="row">
+    <div><label>Ulangi (kali)</label><input type="number" id="repeat" value="1" min="1" max="99"></div>
+    <div><label>Volume: <span id="volVal">80</span>%</label><input type="range" id="vol" min="0" max="100" value="80"></div>
+  </div>
+  <div class="chk"><input type="checkbox" id="playBrowser" checked><span>Putar suara di HP/browser</span></div>
+  <div class="chk"><input type="checkbox" id="playEsp" checked><span>Kirim perintah ke ESP32</span></div>
+  <div class="now" id="nowPlaying">Belum memutar</div>
+  <div class="row">
+    <button class="btn" style="background:#334155" onclick="prevAyah()">⏮</button>
+    <button class="btn" onclick="startPlay()">▶ Putar</button>
+    <button class="btn red" onclick="stopPlay()">⏹</button>
+    <button class="btn" style="background:#334155" onclick="nextAyah()">⏭</button>
+  </div>
+</div>
 
-    <div class="btn-group">
-        <button class="btn-play" onclick="playTartil()">▶ Putar</button>
-        <button class="btn-stop" onclick="stopTartil()">⏹ Stop</button>
-    </div>
+<!-- JAM -->
+<div class="panel" id="p-jam">
+  <label>Zona waktu</label>
+  <select id="tz">
+    <option value="7">WIB (UTC+7)</option>
+    <option value="8">WITA (UTC+8)</option>
+    <option value="9">WIT (UTC+9)</option>
+  </select>
+  <label>Format jam</label>
+  <select id="fmt"><option value="24">24 jam</option><option value="12">12 jam (AM/PM)</option></select>
+  <div class="chk"><input type="checkbox" id="showSec" checked><span>Tampilkan detik</span></div>
+  <div class="chk"><input type="checkbox" id="showDate" checked><span>Tampilkan tanggal</span></div>
+  <label>Atur waktu manual</label>
+  <input type="datetime-local" id="manualTime">
+  <button class="btn gray" onclick="setManualTime()">Kirim waktu manual ke ESP32</button>
+  <button class="btn" onclick="syncPhoneTime()">Sinkron dari waktu HP</button>
+</div>
 
-    <!-- Audio Element Tersembunyi untuk Browser -->
-    <audio id="audioPlayer"></audio>
+<!-- WIFI -->
+<div class="panel" id="p-wifi">
+  <button class="btn" style="margin-top:0" onclick="scanWifi()">🔍 Scan WiFi sekitar</button>
+  <div id="wifiList"></div>
+  <label>Nama WiFi (SSID)</label><input type="text" id="ssid" placeholder="Nama WiFi">
+  <label>Password</label><input type="password" id="wpass" placeholder="Password WiFi">
+  <div class="chk"><input type="checkbox" id="showPass" onchange="wpass.type=this.checked?'text':'password'"><span>Tampilkan password</span></div>
+  <button class="btn" onclick="connectWifi()">Hubungkan ESP32</button>
+  <button class="btn gray" onclick="wifiStatus()">Cek status WiFi</button>
+  <div class="status" id="wifiInfo"></div>
+  <label>Mode Access Point (hotspot ESP32)</label>
+  <input type="text" id="apName" value="AutoTartil" placeholder="Nama AP">
+  <input type="password" id="apPass" value="12345678" placeholder="Password AP (min 8 karakter)" style="margin-top:6px">
+  <button class="btn gray" onclick="saveAp()">Simpan pengaturan AP</button>
+</div>
 
-    <div class="esp-status">
-        <span class="status-dot" id="statusDot"></span>
-        <strong>Status ESP32:</strong> <span id="statusText">Belum terhubung</span><br>
-        <small>IP ESP32: <input type="text" id="espIp" value="192.168.4.1" style="width: 120px; padding: 2px; margin-top: 5px; font-size: 12px;"></small>
-    </div>
+<!-- WARNA -->
+<div class="panel" id="p-warna">
+  <label>Tema cepat</label>
+  <select id="theme">
+    <option value="">- pilih tema -</option>
+    <option value="hijau">Hijau Masjid</option>
+    <option value="emas">Emas Malam</option>
+    <option value="biru">Biru Langit</option>
+    <option value="putih">Terang</option>
+    <option value="merah">Merah Maroon</option>
+  </select>
+  <div class="row">
+    <div><label>Warna jam</label><input type="color" id="cClock" value="#ffffff"></div>
+    <div><label>Warna tanggal</label><input type="color" id="cDate" value="#94a3b8"></div>
+  </div>
+  <div class="row">
+    <div><label>Warna latar jam</label><input type="color" id="cBox" value="#162033"></div>
+    <div><label>Warna aksen</label><input type="color" id="cAccent" value="#0f766e"></div>
+  </div>
+  <label>Warna latar halaman</label><input type="color" id="cBg" value="#0b1220">
+  <label>Font jam</label>
+  <select id="fontClk">
+    <option value="'Segoe UI',Tahoma,sans-serif">Normal</option>
+    <option value="'Courier New',monospace">Digital (mono)</option>
+    <option value="Georgia,serif">Klasik (serif)</option>
+    <option value="Impact,sans-serif">Tebal</option>
+  </select>
+  <label>Ukuran jam: <span id="szVal">48</span>px</label>
+  <input type="range" id="clkSize" min="28" max="80" value="48">
+  <label>Efek cahaya (glow): <span id="glVal">0</span></label>
+  <input type="range" id="glow" min="0" max="30" value="0">
+  <label>Kecerahan layar ESP32: <span id="brVal">100</span>%</label>
+  <input type="range" id="bright" min="5" max="100" value="100">
+  <button class="btn" onclick="saveSettings(true)">Simpan & kirim ke ESP32</button>
+</div>
+
+<!-- JADWAL -->
+<div class="panel" id="p-jadwal">
+  <label>Jam alarm</label><input type="time" id="alTime" value="04:30">
+  <label>Surah</label><select id="alSurah"></select>
+  <div class="row">
+    <div><label>Ayat awal</label><input type="number" id="alAyah" value="1" min="1"></div>
+    <div><label>Ayat akhir</label><input type="number" id="alAyahEnd" value="7" min="1"></div>
+  </div>
+  <label>Hari</label>
+  <div class="days" id="alDays"></div>
+  <button class="btn" onclick="addAlarm()">+ Tambah alarm tartil</button>
+  <div id="alList"></div>
+  <div class="status">Alarm di browser hanya jalan saat halaman terbuka. Alarm di ESP32 jalan sendiri setelah dikirim.</div>
+  <button class="btn gray" onclick="sendAlarms()">Kirim semua alarm ke ESP32</button>
+</div>
+
+<!-- SISTEM -->
+<div class="panel" id="p-sistem">
+  <label>IP ESP32</label><input type="text" id="espIp" placeholder="192.168.4.1">
+  <button class="btn" onclick="checkEsp()">Tes koneksi</button>
+  <button class="btn gray" onclick="saveSettings(true)">Simpan semua pengaturan</button>
+  <button class="btn gray" onclick="espCmd('restart')">Restart ESP32</button>
+  <button class="btn red" onclick="if(confirm('Reset semua pengaturan?'))resetAll()">Reset pengaturan</button>
+  <div class="status" id="sysInfo"></div>
+</div>
+
+<div class="status"><span class="dot" id="dot"></span><span id="stText">ESP32 belum dicek</span></div>
 </div>
 
 <script>
-    const audioPlayer = document.getElementById('audioPlayer');
-    const statusDot = document.getElementById('statusDot');
-    const statusText = document.getElementById('statusText');
+const $=id=>document.getElementById(id);
+const SURAH="Al-Fatihah:7,Al-Baqarah:286,Ali Imran:200,An-Nisa:176,Al-Maidah:120,Al-Anam:165,Al-Araf:206,Al-Anfal:75,At-Taubah:129,Yunus:109,Hud:123,Yusuf:111,Ar-Rad:43,Ibrahim:52,Al-Hijr:99,An-Nahl:128,Al-Isra:111,Al-Kahfi:110,Maryam:98,Taha:135,Al-Anbiya:112,Al-Hajj:78,Al-Mukminun:118,An-Nur:64,Al-Furqan:77,Asy-Syuara:227,An-Naml:93,Al-Qasas:88,Al-Ankabut:69,Ar-Rum:60,Luqman:34,As-Sajdah:30,Al-Ahzab:73,Saba:54,Fatir:45,Ya-Sin:83,As-Saffat:182,Sad:88,Az-Zumar:75,Gafir:85,Fussilat:54,Asy-Syura:53,Az-Zukhruf:89,Ad-Dukhan:59,Al-Jasiyah:37,Al-Ahqaf:35,Muhammad:38,Al-Fath:29,Al-Hujurat:18,Qaf:45,Az-Zariyat:60,At-Tur:49,An-Najm:62,Al-Qamar:55,Ar-Rahman:78,Al-Waqiah:96,Al-Hadid:29,Al-Mujadalah:22,Al-Hasyr:24,Al-Mumtahanah:13,As-Saff:14,Al-Jumuah:11,Al-Munafiqun:11,At-Tagabun:18,At-Talaq:12,At-Tahrim:12,Al-Mulk:30,Al-Qalam:52,Al-Haqqah:52,Al-Maarij:44,Nuh:28,Al-Jinn:28,Al-Muzzammil:20,Al-Muddassir:56,Al-Qiyamah:40,Al-Insan:31,Al-Mursalat:50,An-Naba:40,An-Naziat:46,Abasa:42,At-Takwir:29,Al-Infitar:19,Al-Mutaffifin:36,Al-Insyiqaq:25,Al-Buruj:22,At-Tariq:17,Al-Ala:19,Al-Gasyiyah:26,Al-Fajr:30,Al-Balad:20,Asy-Syams:15,Al-Lail:21,Ad-Duha:11,Al-Insyirah:8,At-Tin:8,Al-Alaq:19,Al-Qadr:5,Al-Bayyinah:8,Az-Zalzalah:8,Al-Adiyat:11,Al-Qariah:11,At-Takasur:8,Al-Asr:3,Al-Humazah:9,Al-Fil:5,Quraisy:4,Al-Maun:7,Al-Kausar:3,Al-Kafirun:6,An-Nasr:3,Al-Masad:5,Al-Ikhlas:4,Al-Falaq:5,An-Nas:6".split(',').map(s=>{const[a,b]=s.split(':');return{n:a,c:+b}});
+const HARI=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+const THEMES={
+ hijau:{cBg:'#06201c',cBox:'#0f3d36',cAccent:'#0f766e',cClock:'#ffffff',cDate:'#99f6e4'},
+ emas:{cBg:'#14110a',cBox:'#241d0e',cAccent:'#b45309',cClock:'#fbbf24',cDate:'#d6b66a'},
+ biru:{cBg:'#0b1b33',cBox:'#12305c',cAccent:'#2563eb',cClock:'#e0f2fe',cDate:'#93c5fd'},
+ putih:{cBg:'#f1f5f9',cBox:'#ffffff',cAccent:'#0f766e',cClock:'#0f172a',cDate:'#64748b'},
+ merah:{cBg:'#1f0a0e',cBox:'#3b0f18',cAccent:'#be123c',cClock:'#ffe4e6',cDate:'#fda4af'}
+};
+const DEF={ip:location.protocol==='file:'?'192.168.4.1':location.host,tz:'7',fmt:'24',showSec:true,showDate:true,
+ cBg:'#0b1220',cBox:'#162033',cAccent:'#0f766e',cClock:'#ffffff',cDate:'#94a3b8',fontClk:"'Segoe UI',Tahoma,sans-serif",
+ clkSize:48,glow:0,bright:100,vol:80,qari:'Alafasy_128kbps',surah:1,ayah:1,ayahEnd:7,repeat:1,apName:'AutoTartil',apPass:'12345678'};
+let S=Object.assign({},DEF), alarms=[], timeOffsetMs=0;
+try{Object.assign(S,JSON.parse(localStorage.getItem('tartilS')||'{}'));alarms=JSON.parse(localStorage.getItem('tartilAl')||'[]')}catch(e){}
 
-    // Fungsi untuk mendapatkan URL Audio dari API EveryAyah (Mishary Alafasy)
-    function getAudioUrl(surah, ayah) {
-        // Format: https://everyayah.com/data/Alafasy_128kbps/001001.mp3
-        const paddedAyah = ayah.toString().padStart(3, '0');
-        return `https://everyayah.com/data/Alafasy_128kbps/${surah}${paddedAyah}.mp3`;
-    }
+/* ---------- init UI ---------- */
+SURAH.forEach((s,i)=>{const o=`<option value="${i+1}">${i+1}. ${s.n}</option>`;$('surah').insertAdjacentHTML('beforeend',o);$('alSurah').insertAdjacentHTML('beforeend',o)});
+HARI.forEach((h,i)=>$('alDays').insertAdjacentHTML('beforeend',`<label><input type="checkbox" value="${i}" checked><span>${h}</span></label>`));
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('on'));
+ document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));
+ b.classList.add('on');$('p-'+b.dataset.t).classList.add('on')});
 
-    async function playTartil() {
-        const surah = document.getElementById('surah').value;
-        const ayah = document.getElementById('ayah').value;
-        const audioUrl = getAudioUrl(surah, ayah);
+const FIELDS=['tz','fmt','cBg','cBox','cAccent','cClock','cDate','fontClk','clkSize','glow','bright','vol','qari','surah','ayah','ayahEnd','repeat','apName','apPass'];
+const CHK=['showSec','showDate'];
+function loadUI(){
+ $('espIp').value=S.ip;
+ FIELDS.forEach(k=>{if($(k))$(k).value=S[k]});
+ CHK.forEach(k=>$(k).checked=!!S[k]);
+ syncLabels();applyStyle();
+}
+function readUI(){
+ S.ip=$('espIp').value.trim()||DEF.ip;
+ FIELDS.forEach(k=>S[k]=$(k).value);
+ CHK.forEach(k=>S[k]=$(k).checked);
+}
+function syncLabels(){
+ $('volVal').textContent=$('vol').value;$('szVal').textContent=$('clkSize').value;
+ $('glVal').textContent=$('glow').value;$('brVal').textContent=$('bright').value;
+ const max=SURAH[$('surah').value-1].c;$('ayah').max=max;$('ayahEnd').max=max;
+ $('lbAyah').textContent=`Ayat awal (1-${max})`;
+ const am=SURAH[$('alSurah').value-1].c;$('alAyah').max=am;$('alAyahEnd').max=am;
+}
+function applyStyle(){
+ const r=document.documentElement.style;
+ r.setProperty('--bg',S.cBg);r.setProperty('--accent',S.cAccent);
+ const light=S.cBg==='#f1f5f9';
+ r.setProperty('--card',light?'#ffffff':'#162033');
+ r.setProperty('--text',light?'#0f172a':'#e2e8f0');
+ r.setProperty('--line',light?'#cbd5e1':'#2a3750');
+ r.setProperty('--muted',light?'#64748b':'#94a3b8');
+ document.querySelectorAll('select,input[type=text],input[type=password],input[type=number],input[type=time],input[type=datetime-local]').forEach(e=>e.style.background=light?'#f8fafc':'#0f1829');
+ $('clockBox').style.background=S.cBox;
+ const t=$('clkTime');t.style.color=S.cClock;t.style.fontFamily=S.fontClk;t.style.fontSize=S.clkSize+'px';
+ t.style.textShadow=S.glow>0?`0 0 ${S.glow}px ${S.cClock}`:'none';
+ $('clkDate').style.color=S.cDate;$('clkDate').style.display=S.showDate?'block':'none';
+}
+document.querySelectorAll('input,select').forEach(e=>{
+ e.addEventListener('input',()=>{readUI();syncLabels();applyStyle();persist()});
+});
+$('theme').onchange=function(){const t=THEMES[this.value];if(!t)return;Object.keys(t).forEach(k=>{$(k).value=t[k]});readUI();applyStyle();persist()};
+function persist(){localStorage.setItem('tartilS',JSON.stringify(S));localStorage.setItem('tartilAl',JSON.stringify(alarms))}
 
-        // 1. Putar di Browser (Web)
-        audioPlayer.src = audioUrl;
-        audioPlayer.play().catch(e => console.log("Autoplay dicegah browser, klik play manual.", e));
+/* ---------- jam ---------- */
+function nowDate(){
+ const utc=Date.now()+timeOffsetMs;
+ return new Date(utc+(+S.tz)*3600000);
+}
+const BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const HR=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+function p2(n){return String(n).padStart(2,'0')}
+function tick(){
+ const d=nowDate();let h=d.getUTCHours(),suf='';
+ if(S.fmt==='12'){suf=h>=12?' PM':' AM';h=h%12||12}
+ $('clkTime').textContent=p2(h)+':'+p2(d.getUTCMinutes())+(S.showSec?':'+p2(d.getUTCSeconds()):'')+suf;
+ $('clkDate').textContent=`${HR[d.getUTCDay()]}, ${d.getUTCDate()} ${BLN[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+ if(d.getUTCSeconds()===0)checkAlarms(d);
+}
+setInterval(tick,1000);
 
-        // 2. Kirim Perintah ke ESP32 (Jika ada)
-        sendToESP32('play', audioUrl);
-    }
+/* ---------- ESP API ---------- */
+async function api(path,opt={}){
+ const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),5000);
+ try{
+  const r=await fetch('http://'+S.ip+path,Object.assign({signal:ctl.signal},opt));
+  clearTimeout(to);setConn(true);
+  const t=await r.text();try{return JSON.parse(t)}catch(e){return t||true}
+ }catch(e){clearTimeout(to);setConn(false);return null}
+}
+function post(path,obj){return api(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)})}
+function setConn(ok){$('dot').classList.toggle('ok',ok);$('stText').textContent=ok?`Terhubung ke ESP32 (${S.ip})`:`ESP32 tidak terjangkau (${S.ip})`}
+async function checkEsp(){
+ $('sysInfo').textContent='Mengecek...';
+ const r=await api('/api/status');
+ $('sysInfo').textContent=r?('Berhasil. '+(typeof r==='object'?JSON.stringify(r):r)):'Gagal. Pastikan HP satu jaringan dengan ESP32 dan IP benar.';
+}
+function espCmd(c){api('/api/'+c).then(r=>$('sysInfo').textContent=r?'Perintah terkirim':'Gagal mengirim')}
+function saveSettings(send){
+ readUI();persist();
+ if(send)post('/api/settings',S).then(r=>alert(r?'Tersimpan & terkirim ke ESP32':'Tersimpan di HP. ESP32 tidak terjangkau.'))
+}
+function resetAll(){localStorage.clear();S=Object.assign({},DEF);alarms=[];loadUI();renderAlarms()}
 
-    function stopTartil() {
-        audioPlayer.pause();
-        audioPlayer.currentTime = 0;
-        sendToESP32('stop', '');
-    }
+/* ---------- atur waktu ---------- */
+function syncPhoneTime(){
+ timeOffsetMs=0;
+ post('/api/time',{epoch:Math.floor(Date.now()/1000),tz:+S.tz}).then(r=>alert(r?'Waktu HP dikirim ke ESP32':'ESP32 tidak terjangkau. Jam di halaman ini tetap memakai waktu HP.'));
+}
+function setManualTime(){
+ const v=$('manualTime').value;if(!v){alert('Isi tanggal & jam dulu');return}
+ const [dt,tm]=v.split('T'),[y,mo,da]=dt.split('-').map(Number),[h,mi]=tm.split(':').map(Number);
+ const epoch=Date.UTC(y,mo-1,da,h,mi,0)/1000-(+S.tz)*3600;
+ timeOffsetMs=epoch*1000-Date.now();
+ post('/api/time',{epoch,tz:+S.tz}).then(r=>alert(r?'Waktu manual dikirim ke ESP32':'ESP32 tidak terjangkau. Jam halaman ini sudah mengikuti waktu manual.'));
+}
 
-    // Fungsi mengirim data ke ESP32 via HTTP Request
-    async function sendToESP32(action, url) {
-        const espIp = document.getElementById('espIp').value;
-        const endpoint = `http://${espIp}/${action}?url=${encodeURIComponent(url)}`;
+/* ---------- WiFi ---------- */
+async function scanWifi(){
+ $('wifiList').innerHTML='<div class="status">Memindai...</div>';
+ let list=await api('/api/scan');
+ let demo=false;
+ if(!Array.isArray(list)){demo=true;list=[{ssid:'WiFi_Rumah',rssi:-45,enc:true},{ssid:'Masjid_Al-Ikhlas',rssi:-60,enc:true},{ssid:'Warung_Free',rssi:-78,enc:false}]}
+ list.sort((a,b)=>b.rssi-a.rssi);
+ $('wifiList').innerHTML=(demo?'<div class="status">ESP32 tidak terjangkau, ini data contoh (demo)</div>':'')+
+ list.map(w=>`<div class="item" data-s="${encodeURIComponent(w.ssid)}"><span>${w.enc?'🔒':'🔓'} ${esc(w.ssid)}</span><small>${bars(w.rssi)} ${w.rssi} dBm</small></div>`).join('');
+ document.querySelectorAll('#wifiList .item').forEach(i=>i.onclick=()=>{$('ssid').value=decodeURIComponent(i.dataset.s);$('wpass').focus()});
+}
+function bars(r){return r>-55?'▂▄▆█':r>-67?'▂▄▆':r>-80?'▂▄':'▂'}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function connectWifi(){
+ const ssid=$('ssid').value.trim();if(!ssid){alert('Isi nama WiFi');return}
+ $('wifiInfo').textContent='Menghubungkan ESP32...';
+ const r=await post('/api/wifi',{ssid,pass:$('wpass').value});
+ $('wifiInfo').textContent=r?'Perintah terkirim. Jika berhasil, ESP32 akan dapat IP baru (cek di Serial Monitor atau router), lalu isi IP baru di menu Sistem.':'Gagal mengirim ke ESP32.';
+}
+async function wifiStatus(){
+ const r=await api('/api/wifi');
+ $('wifiInfo').textContent=(r&&typeof r==='object')?`SSID: ${r.ssid||'-'} | IP: ${r.ip||'-'} | Sinyal: ${r.rssi||'-'} dBm`:'Tidak dapat membaca status.';
+}
+function saveAp(){
+ if($('apPass').value.length<8){alert('Password AP minimal 8 karakter');return}
+ readUI();persist();post('/api/ap',{name:S.apName,pass:S.apPass}).then(r=>alert(r?'Pengaturan AP terkirim':'ESP32 tidak terjangkau'));
+}
 
-        try {
-            // Menggunakan mode 'no-cors' karena ESP32 biasanya tidak punya header CORS
-            await fetch(endpoint, { mode: 'no-cors' });
-            
-            statusDot.classList.add('connected');
-            statusText.innerText = "Mengirim perintah...";
-            setTimeout(() => { statusText.innerText = "Terhubung (Asumsi)"; }, 1000);
-        } catch (error) {
-            statusDot.classList.remove('connected');
-            statusText.innerText = "Gagal terhubung ke ESP32";
-            console.error("Error ESP32:", error);
-        }
-    }
+/* ---------- audio ---------- */
+const audio=new Audio();
+let q={s:1,a:1,e:1,rep:1,left:1,on:false};
+const aUrl=(s,a)=>`https://everyayah.com/data/${S.qari}/${String(s).padStart(3,'0')}${String(a).padStart(3,'0')}.mp3`;
+function startPlay(){
+ readUI();
+ const s=+S.surah,max=SURAH[s-1].c;
+ let a=Math.min(Math.max(+S.ayah||1,1),max),e=Math.min(Math.max(+S.ayahEnd||a,a),max);
+ q={s,a,e,rep:Math.max(+S.repeat||1,1),left:Math.max(+S.repeat||1,1),on:true};
+ playCur();
+}
+function playCur(){
+ const url=aUrl(q.s,q.a);
+ $('nowPlaying').textContent=`▶ ${SURAH[q.s-1].n} ayat ${q.a} (ulang ${q.rep-q.left+1}/${q.rep})`;
+ if($('playBrowser').checked){audio.src=url;audio.volume=S.vol/100;audio.play().catch(()=>$('nowPlaying').textContent='Ketuk Putar lagi (browser menahan autoplay)')}
+ if($('playEsp').checked)api(`/api/play?surah=${q.s}&ayah=${q.a}&vol=${S.vol}&url=${encodeURIComponent(url)}`);
+}
+audio.onended=()=>{
+ if(!q.on)return;
+ q.left--;
+ if(q.left>0){playCur();return}
+ q.left=q.rep;
+ if(q.a<q.e){q.a++;playCur()}else stopPlay(true);
+};
+function stopPlay(done){
+ q.on=false;audio.pause();audio.currentTime=0;
+ $('nowPlaying').textContent=done===true?'Selesai':'Berhenti';
+ if($('playEsp').checked)api('/api/stop');
+}
+function nextAyah(){if(!q.on)return;const max=SURAH[q.s-1].c;if(q.a<max){q.a++;q.left=q.rep;if(q.a>q.e)q.e=q.a;playCur()}}
+function prevAyah(){if(!q.on)return;if(q.a>1){q.a--;q.left=q.rep;playCur()}}
+$('vol').addEventListener('input',()=>{audio.volume=$('vol').value/100;if(q.on)api('/api/volume?v='+$('vol').value)});
+
+/* ---------- alarm ---------- */
+function addAlarm(){
+ const days=[...document.querySelectorAll('#alDays input:checked')].map(i=>+i.value);
+ if(!days.length){alert('Pilih minimal satu hari');return}
+ const s=+$('alSurah').value,max=SURAH[s-1].c;
+ const a=Math.min(Math.max(+$('alAyah').value||1,1),max),e=Math.min(Math.max(+$('alAyahEnd').value||a,a),max);
+ alarms.push({id:Date.now(),time:$('alTime').value,surah:s,ayah:a,end:e,days,on:true});
+ persist();renderAlarms();
+}
+function renderAlarms(){
+ $('alList').innerHTML=alarms.map(a=>`<div class="item"><span>${a.on?'🔔':'🔕'} <b>${a.time}</b><br><small>${SURAH[a.surah-1].n} ${a.ayah}-${a.end} · ${a.days.map(d=>HARI[d]).join(',')}</small></span><span><button style="border:none;background:none;font-size:18px" onclick="toggleAlarm(${a.id})">${a.on?'⏸':'▶'}</button><button style="border:none;background:none;font-size:18px" onclick="delAlarm(${a.id})">🗑</button></span></div>`).join('');
+}
+function toggleAlarm(id){const a=alarms.find(x=>x.id===id);if(a){a.on=!a.on;persist();renderAlarms()}}
+function delAlarm(id){alarms=alarms.filter(x=>x.id!==id);persist();renderAlarms()}
+function checkAlarms(d){
+ const t=p2(d.getUTCHours())+':'+p2(d.getUTCMinutes());
+ alarms.forEach(a=>{
+  if(a.on&&a.time===t&&a.days.includes(d.getUTCDay())){
+   $('surah').value=a.surah;$('ayah').value=a.ayah;$('ayahEnd').value=a.end;startPlay();
+  }
+ });
+}
+function sendAlarms(){post('/api/alarms',alarms).then(r=>alert(r?'Alarm terkirim ke ESP32':'ESP32 tidak terjangkau'))}
+
+/* ---------- start ---------- */
+loadUI();renderAlarms();tick();checkEsp();
 </script>
-
 </body>
 </html>
