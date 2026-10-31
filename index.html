@@ -28,11 +28,18 @@ background:radial-gradient(900px 420px at 50% -8%,color-mix(in srgb,var(--accent
 box-shadow:0 18px 50px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06);margin-bottom:14px}
 .clock::before{content:"";position:absolute;inset:0;background:radial-gradient(400px 160px at 50% 0,rgba(255,255,255,.07),transparent);pointer-events:none}
 .zone{display:inline-block;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:3px 10px;border-radius:99px;background:rgba(255,255,255,.09);color:var(--muted);margin-bottom:6px}
+.greet{font-size:13px;font-weight:600;color:var(--muted);margin-top:2px}
 #clkTime{font-size:48px;font-weight:800;letter-spacing:2px;font-variant-numeric:tabular-nums;line-height:1.1}
 #clkDate{margin-top:6px;font-size:14px;color:var(--muted)}
-.marq{overflow:hidden;white-space:nowrap;margin-top:14px;padding:8px 0;border-top:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.1);font-size:15px;font-weight:600}
-.marq span{display:inline-block;padding-left:100%;animation:mq 15s linear infinite}
-@keyframes mq{to{transform:translateX(-100%)}}
+.secbar{height:4px;border-radius:99px;background:rgba(255,255,255,.1);margin:12px 18px 0;overflow:hidden}
+.secbar b{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),#fff);transition:width 1s linear}
+.marq{position:relative;overflow:hidden;white-space:nowrap;margin-top:14px;padding:10px 0;border-radius:14px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.1);font-size:15px;font-weight:700;
+-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.mtrack{display:inline-flex;width:max-content;animation:mq 15s linear infinite}
+.mtrack span{padding:0 14px}
+.mtrack i{font-style:normal;color:var(--accent)}
+.marq:active .mtrack{animation-play-state:paused}
+@keyframes mq{to{transform:translateX(-50%)}}
 .stline{margin-top:12px;font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:7px}
 .dot{width:9px;height:9px;border-radius:50%;background:#64748b;flex:none}
 .dot.ok{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.2)}
@@ -89,6 +96,15 @@ table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
 td,th{border:1px solid var(--line);padding:7px 9px;text-align:left}
 th{background:rgba(255,255,255,.05)}
 .foot{margin-top:18px;text-align:center;font-size:11.5px;color:var(--muted)}
+
+/* saklar */
+.swbig{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px;border-radius:20px;background:var(--inp);border:1px solid var(--line);margin-top:12px}
+.swbtn{width:110px;height:110px;border-radius:50%;border:none;font-size:46px;cursor:pointer;background:#2b3552;color:#fff;transition:.2s;box-shadow:inset 0 0 0 4px rgba(255,255,255,.06)}
+.swbtn:active{transform:scale(.95)}
+.swbtn.on{background:linear-gradient(135deg,#facc15,#f59e0b);box-shadow:0 0 34px rgba(250,204,21,.55)}
+.swst{font-size:15px;font-weight:800;text-align:center}
+.swlk{font-size:12px;color:var(--muted);text-align:center}
+.warn{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);font-size:12.5px;line-height:1.55}
 </style>
 </head>
 <body>
@@ -99,14 +115,16 @@ th{background:rgba(255,255,255,.05)}
     <div class="logo">🕌</div>
     <div><h1>Auto Tartil</h1><p>Kontrol ESP32 · <b id="modeChip">WiFi</b></p></div>
   </div>
-  <div class="ver">v2.0 Pro</div>
+  <div class="ver">v2.1 Pro</div>
 </header>
 
 <div class="clock" id="clockBox">
   <div class="zone" id="zoneLbl">WIB</div>
+  <div class="greet" id="greet"></div>
   <div id="clkTime">00:00:00</div>
   <div id="clkDate"></div>
-  <div class="marq" id="marq"><span id="marqTxt"></span></div>
+  <div class="secbar"><b id="secFill"></b></div>
+  <div class="marq" id="marq"><div class="mtrack" id="marqTxt"></div></div>
   <div class="stline"><span class="dot" id="dot"></span><span id="stText">ESP32 belum dicek</span></div>
 </div>
 
@@ -114,6 +132,7 @@ th{background:rgba(255,255,255,.05)}
   <button data-t="tartil" class="on">🎧 Tartil</button>
   <button data-t="jam">🕒 Jam</button>
   <button data-t="jadwal">⏰ Jadwal</button>
+  <button data-t="saklar">🔌 Saklar</button>
   <button data-t="wifi">📶 WiFi</button>
   <button data-t="ble">🔵 Bluetooth</button>
   <button data-t="warna">🎨 Warna</button>
@@ -197,6 +216,54 @@ th{background:rgba(255,255,255,.05)}
   <div id="alList"></div>
   <div class="status">Alarm di browser hanya jalan saat halaman terbuka. Alarm di ESP32 jalan sendiri setelah dikirim.</div>
   <button class="btn gray" onclick="sendAlarms()">Kirim semua alarm ke ESP32</button>
+</div>
+
+<!-- SAKLAR -->
+<div class="panel" id="p-saklar">
+  <h3>Saklar WiFi (Smart Switch)</h3>
+  <p class="sub">Nyalakan atau matikan speaker/lampu lewat Smart Switch yang sudah memakai firmware Tasmota.</p>
+
+  <div class="swbig">
+    <button class="swbtn" id="swBtn" onclick="swPower('TOGGLE')"><span id="swIcon">🔌</span></button>
+    <div class="swst" id="swState">Saklar: status belum diketahui</div>
+    <div class="swlk" id="swLink"></div>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="swPower('ON')">Nyalakan</button>
+    <button class="btn red" onclick="swPower('OFF')">Matikan</button>
+  </div>
+  <label>Nyala otomatis mati setelah (menit, 0 = tidak)</label>
+  <input type="number" id="swMin" value="0" min="0" max="1000">
+  <div class="row">
+    <button class="btn blue" onclick="readUI();persist();swConnect()">Sambungkan</button>
+    <button class="btn gray" onclick="swRun('Power').then(r=>swMsg(r?'Menanyakan status...':'Gagal'))">Cek status</button>
+  </div>
+  <div class="status" id="swInfo"></div>
+
+  <div class="sep"></div>
+  <h3>Pengaturan</h3>
+  <label>Nama saklar</label><input type="text" id="swName" placeholder="Contoh: Speaker masjid">
+  <label>Jalur</label>
+  <select id="swMode">
+    <option value="mqtt">Internet (MQTT) - bisa dari mana saja</option>
+    <option value="http">WiFi lokal (IP saklar) - hanya halaman http</option>
+    <option value="sim">Simulasi (tanpa saklar)</option>
+  </select>
+  <label>Topik Tasmota (mode Internet, min 6 karakter)</label>
+  <input type="text" id="swTopic" placeholder="contoh: saklar_x7k29qpm" autocomplete="off">
+  <label>IP saklar (mode WiFi lokal)</label>
+  <input type="text" id="swIp" placeholder="192.168.1.60">
+
+  <div class="sep"></div>
+  <h3>Otomatis</h3>
+  <label class="chk"><span>Nyalakan saklar saat tartil mulai, matikan saat selesai/stop</span><input type="checkbox" class="tg" id="swAuto"></label>
+  <label class="chk"><span>Jadwal harian saklar (jalan saat halaman terbuka)</span><input type="checkbox" class="tg" id="swSchedOn"></label>
+  <div class="row">
+    <div><label>Jam nyala</label><input type="time" id="swOnT" value="04:00"></div>
+    <div><label>Jam mati</label><input type="time" id="swOffT" value="06:00"></div>
+  </div>
+  <div class="hint">Untuk jadwal yang jalan sendiri tanpa halaman terbuka, pakai menu Timers di halaman Tasmota (lihat Tutorial).</div>
+  <div class="warn">⚠️ Listrik 220V berbahaya. Jangan buka atau utak-atik saklar saat tersambung listrik. Jangan pasang beban di atas 10A.</div>
 </div>
 
 <!-- WIFI -->
@@ -356,6 +423,7 @@ th{background:rgba(255,255,255,.05)}
       <li><b>Tartil</b>: pilih surah, ayat, qari, jumlah ulang, lalu Putar. Ayat berikutnya diputar otomatis.</li>
       <li><b>Jam</b>: zona waktu, format, teks berjalan, dan sinkron waktu.</li>
       <li><b>Jadwal</b>: buat alarm tartil harian, lalu kirim ke ESP32.</li>
+      <li><b>Saklar</b>: nyala/mati Smart Switch, timer otomatis mati, nyala bareng tartil.</li>
       <li><b>WiFi</b>: scan jaringan, pilih, isi password, hubungkan.</li>
       <li><b>Warna</b>: pilih tema atau atur warna, ukuran, font, glow jam.</li>
       <li><b>Sistem</b>: jalur koneksi, IP, kode rumah, simpan atau reset.</li>
@@ -387,6 +455,40 @@ th{background:rgba(255,255,255,.05)}
       <tr><td>DIN</td><td>D22</td></tr>
     </table>
     <div class="status" style="text-align:left;margin-bottom:12px">Hanya contoh. Pin bisa diubah di sketch.</div>
+  </details>
+  <details><summary>11. Saklar: pilih cara (baca dulu)</summary>
+    <ul>
+      <li>Saklar "Smart Switch" di fotomu memakai firmware bawaan pabrik. Firmware itu hanya bisa dikontrol lewat aplikasinya (eWeLink / Smart Life), <b>tidak bisa</b> langsung dari halaman ini.</li>
+      <li><b>Cara A (paling mudah)</b>: tetap pakai aplikasinya. Halaman ini tidak dipakai untuk saklar.</li>
+      <li><b>Cara B (menu Saklar di halaman ini)</b>: ganti firmware saklar ke <b>Tasmota</b> (gratis). Butuh membuka casing, adaptor USB-TTL 3.3V (CP2102/FTDI), dan kabel jumper. Tidak semua saklar sejenis bisa, tergantung chip di dalamnya.</li>
+      <li><b>Cara C (paling aman)</b>: pakai ESP32 yang sudah ada + modul relay 1 channel. Pin relay dikontrol dari sketch ESP32 (tanya saya kalau mau dibuatkan sketchnya).</li>
+    </ul>
+  </details>
+  <details><summary>12. Saklar: pasang Tasmota (Cara B)</summary>
+    <ol>
+      <li><b>Cabut saklar dari listrik 220V.</b> Selama flashing, saklar hanya boleh dapat daya 3.3V dari adaptor USB-TTL, tidak boleh ada kabel listrik rumah.</li>
+      <li>Buka casing. Cari chip ESP8266/ESP8285 dan pin TX, RX, GND, 3V3, serta GPIO0 (biasanya dekat tombol).</li>
+      <li>Sambung: TX adaptor ke RX saklar, RX adaptor ke TX saklar, GND ke GND, 3V3 ke 3V3. Hubungkan GPIO0 ke GND <b>sebelum</b> adaptor dicolok ke PC (mode flash).</li>
+      <li>Di PC, buka Chrome atau Edge ke <span class="code">https://tasmota.github.io/install/</span>, pilih Tasmota, tekan Connect, pilih port, lalu Install.</li>
+      <li>Setelah selesai, lepas GPIO0 dari GND, cabut adaptor, rakit kembali casing.</li>
+    </ol>
+    <ul><li>Kalau ada tulisan chip yang tidak dikenali (misalnya modul Tuya/WB2S), jangan dipaksa. Pakai Cara A atau C.</li></ul>
+  </details>
+  <details><summary>13. Saklar: setting Tasmota & sambungkan ke halaman ini</summary>
+    <ol>
+      <li>Pasang saklar ke listrik (setelah casing tertutup rapat). Cari WiFi <b>tasmota-xxxx</b> di HP, sambungkan, buka <span class="code">192.168.4.1</span>.</li>
+      <li>Pilih WiFi rumah, isi password, Save. Saklar restart dan dapat IP baru (lihat di router atau aplikasi Fing).</li>
+      <li>Buka IP itu di browser. Configuration → Configure Module → pilih <b>Sonoff Basic (1)</b> → Save. Kalau relay tidak bunyi saat ditekan tombol Toggle, model saklarmu butuh template lain.</li>
+      <li>Configuration → Configure MQTT: Host <span class="code">broker.emqx.io</span>, Port <span class="code">1883</span>, Topic isi kode acak panjang misalnya <span class="code">saklar_x7k29qpm</span> (jangan pakai tulisan yang mudah ditebak), kosongkan User dan Password. Save.</li>
+      <li>Di halaman ini, menu Saklar: Jalur = <b>Internet (MQTT)</b>, isi Topik dengan kode yang sama persis, tekan <b>Sambungkan</b>.</li>
+      <li>Tekan Cek status. Kalau tulisan berubah dan tombol bulat bisa menyalakan relay, berhasil.</li>
+    </ol>
+    <ul>
+      <li>Mode <b>WiFi lokal (IP)</b>: isi IP saklar. Hanya jalan kalau halaman dibuka lewat http (misalnya dari ESP32 atau file lokal), bukan dari Cloudflare HTTPS.</li>
+      <li>Broker publik terbuka. Siapa pun yang tahu topikmu bisa menyalakan saklar, jadi rahasiakan dan jangan dipakai untuk beban yang berbahaya.</li>
+      <li>Jadwal tanpa halaman terbuka: di halaman Tasmota, Configuration → Configure Timers, aktifkan Timers, atur jam dan hari.</li>
+      <li>Opsi "Nyalakan saklar saat tartil mulai" cocok untuk menyalakan speaker otomatis bersamaan dengan alarm tartil.</li>
+    </ul>
   </details>
 </div>
 
@@ -430,7 +532,8 @@ const THEMES={
 const DEF={mode:'wifi',ip:location.protocol==='file:'?'192.168.4.1':(location.host||'192.168.4.1'),tz:'7',fmt:'24',showSec:true,showDate:true,
  cBg:'#0a0f1c',cBox:'#162033',cAccent:'#14b8a6',cClock:'#ffffff',cDate:'#94a3b8',fontClk:"'Inter','Segoe UI',system-ui,sans-serif",
  clkSize:48,glow:0,bright:100,vol:80,qari:'Alafasy_128kbps',surah:1,ayah:1,ayahEnd:7,repeat:1,apName:'AutoTartil',apPass:'12345678',
- marqOn:true,marqText:'Bismillah, selamat datang',marqSpd:15,cloudKey:''};
+ marqOn:true,marqText:'Bismillah, selamat datang',marqSpd:15,cloudKey:'',
+ swMode:'mqtt',swTopic:'',swIp:'',swName:'Speaker',swMin:0,swAuto:false,swSchedOn:false,swOnT:'04:00',swOffT:'06:00'};
 let S=Object.assign({},DEF), alarms=[], timeOffsetMs=0;
 try{Object.assign(S,JSON.parse(localStorage.getItem('tartilS')||'{}'));alarms=JSON.parse(localStorage.getItem('tartilAl')||'[]')}catch(e){}
 if(S.mode==='ble')S.mode='wifi'; // Bluetooth harus disambung ulang manual
@@ -448,8 +551,8 @@ document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
  b.classList.add('on');$('p-'+b.dataset.t).classList.add('on');
  b.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'})});
 
-const FIELDS=['mode','tz','fmt','cBg','cBox','cAccent','cClock','cDate','fontClk','clkSize','glow','bright','vol','qari','surah','ayah','ayahEnd','repeat','apName','apPass','marqText','marqSpd','cloudKey'];
-const CHK=['showSec','showDate','marqOn'];
+const FIELDS=['mode','tz','fmt','cBg','cBox','cAccent','cClock','cDate','fontClk','clkSize','glow','bright','vol','qari','surah','ayah','ayahEnd','repeat','apName','apPass','marqText','marqSpd','cloudKey','swMode','swTopic','swIp','swName','swMin','swOnT','swOffT'];
+const CHK=['showSec','showDate','marqOn','swAuto','swSchedOn'];
 function loadUI(){
  $('espIp').value=S.ip;
  FIELDS.forEach(k=>{if($(k))$(k).value=S[k]});
@@ -460,6 +563,7 @@ function readUI(){
  S.ip=$('espIp').value.trim()||DEF.ip;
  FIELDS.forEach(k=>S[k]=$(k).value);
  CHK.forEach(k=>S[k]=$(k).checked);
+ S.swTopic=String(S.swTopic).trim();S.swIp=String(S.swIp).trim();
 }
 function syncLabels(){
  $('volVal').textContent=$('vol').value;$('szVal').textContent=$('clkSize').value;
@@ -483,8 +587,13 @@ function applyStyle(){
  t.style.textShadow=S.glow>0?`0 0 ${S.glow}px ${S.cClock}`:'none';
  $('clkDate').style.color=S.cDate;$('clkDate').style.display=S.showDate?'block':'none';
  $('marq').style.display=(S.marqOn&&S.marqText)?'block':'none';
- const mt=$('marqTxt');mt.textContent=S.marqText;mt.style.animationDuration=(+S.marqSpd||15)+'s';mt.style.color=S.cClock;
+ const mt=$('marqTxt');
+ const one=`<span>${esc(S.marqText)}</span><i>✦</i>`;
+ const half=one.repeat(4);
+ mt.innerHTML=half+half;
+ mt.style.animationDuration=(+S.marqSpd||15)*2+'s';mt.style.color=S.cClock;
  $('zoneLbl').style.color=S.cDate;
+ $('greet').style.color=S.cDate;
 }
 function updMode(){
  $('modeChip').textContent={wifi:'WiFi',ble:'Bluetooth',cloud:'Internet',sim:'Simulasi (tanpa ESP32)'}[S.mode]||S.mode;
@@ -499,8 +608,9 @@ function setMode(m){
  else setConn(!!ble.chr);
 }
 document.querySelectorAll('input,select').forEach(e=>{
- e.addEventListener('input',()=>{readUI();syncLabels();applyStyle();updMode();persist();if(e.id==='mode')setMode(S.mode)});
+ e.addEventListener('input',()=>{readUI();syncLabels();applyStyle();updMode();persist();if(e.id==='mode')setMode(S.mode);if(e.id.startsWith('sw'))swShow()});
 });
+$('swMode').addEventListener('change',()=>{readUI();persist();SW.on=null;swConnect();swShow()});
 $('theme').onchange=function(){const t=THEMES[this.value];if(!t)return;Object.keys(t).forEach(k=>{$(k).value=t[k]});readUI();applyStyle();persist()};
 function persist(){localStorage.setItem('tartilS',JSON.stringify(S));localStorage.setItem('tartilAl',JSON.stringify(alarms))}
 
@@ -516,7 +626,10 @@ function tick(){
  $('clkTime').textContent=p2(h)+':'+p2(d.getUTCMinutes())+(S.showSec?':'+p2(d.getUTCSeconds()):'')+suf;
  $('clkDate').textContent=`${HR[d.getUTCDay()]}, ${d.getUTCDate()} ${BLN[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
  $('zoneLbl').textContent=ZN[S.tz]||('UTC+'+S.tz);
- if(d.getUTCSeconds()===0)checkAlarms(d);
+ const hh=d.getUTCHours();
+ $('greet').textContent=hh<4?'🌙 Selamat dini hari':hh<11?'🌅 Selamat pagi':hh<15?'☀️ Selamat siang':hh<18?'🌤️ Selamat sore':'🌙 Selamat malam';
+ $('secFill').style.width=((d.getUTCSeconds()+1)/60*100)+'%';
+ if(d.getUTCSeconds()===0){checkAlarms(d);swCheck(d)}
 }
 setInterval(tick,1000);
 
@@ -643,6 +756,82 @@ async function bleTest(path){
  const r=await bleCall(path,null);bleMsg('Balasan: '+JSON.stringify(r));
 }
 
+/* ---------- Saklar (Tasmota via MQTT / HTTP) ---------- */
+const SW={c:null,ok:false,on:null,lwt:''};
+let swLast='';
+function swMsg(t){$('swInfo').textContent=t;log('SAKLAR',t)}
+function swShow(){
+ const s=SW.on;
+ $('swBtn').classList.toggle('on',s===true);
+ $('swIcon').textContent=s?'💡':'🔌';
+ $('swState').textContent=(S.swName||'Saklar')+': '+(s===null?'status belum diketahui':s?'MENYALA':'MATI');
+ $('swLink').textContent=S.swMode==='mqtt'?(SW.ok?'🟢 Broker terhubung'+(SW.lwt?' · perangkat '+SW.lwt:''):'🔴 Broker belum terhubung'):
+  S.swMode==='sim'?'🧪 Simulasi':'🌐 Lewat IP '+(S.swIp||'-');
+}
+function swGot(v){
+ v=String(v).toUpperCase();
+ if(v==='ON'||v==='1')SW.on=true;else if(v==='OFF'||v==='0')SW.on=false;
+ swShow();
+}
+function swConnect(){
+ if(S.swMode!=='mqtt'){swShow();swMsg(S.swMode==='sim'?'Mode simulasi aktif':'Mode IP tidak butuh sambungan broker. Tekan Cek status.');return}
+ if(!window.mqtt){swMsg('Library MQTT gagal dimuat, cek internet lalu muat ulang.');return}
+ if(!S.swTopic||S.swTopic.length<6){swMsg('Topik minimal 6 karakter.');return}
+ if(SW.c){try{SW.c.end(true)}catch(e){}}
+ SW.ok=false;SW.lwt='';swShow();swMsg('Menyambung ke broker...');
+ const t=S.swTopic;
+ SW.c=mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'sw_'+Math.random().toString(16).slice(2,10),reconnectPeriod:3000,connectTimeout:8000});
+ SW.c.on('connect',()=>{SW.ok=true;SW.c.subscribe(['stat/'+t+'/+','tele/'+t+'/LWT']);SW.c.publish('cmnd/'+t+'/Power','');swShow();swMsg('Terhubung ke broker. Menunggu balasan saklar...')});
+ SW.c.on('close',()=>{SW.ok=false;swShow()});
+ SW.c.on('error',e=>log('SAKLAR','MQTT error '+(e&&e.message||e)));
+ SW.c.on('message',(tp,m)=>{
+  const p=m.toString();
+  if(tp.endsWith('/LWT')){SW.lwt=p==='Online'?'online':'offline';swShow();return}
+  if(tp.endsWith('/POWER')||tp.endsWith('/POWER1')){swGot(p);return}
+  if(tp.endsWith('/RESULT')){try{const j=JSON.parse(p);if(j.POWER!==undefined)swGot(j.POWER);else if(j.POWER1!==undefined)swGot(j.POWER1)}catch(e){}}
+ });
+}
+async function swRun(cmd){
+ readUI();
+ if(S.swMode==='sim'){
+  await sleep(200);
+  if(/Power Toggle/i.test(cmd))SW.on=!SW.on;else if(/Power On/i.test(cmd))SW.on=true;else if(/Power Off/i.test(cmd))SW.on=false;
+  swShow();log('SAKLAR','SIM '+cmd);return true;
+ }
+ if(S.swMode==='mqtt'){
+  if(!SW.ok){swMsg('Broker belum terhubung. Tekan "Sambungkan".');return null}
+  const i=cmd.indexOf(' ');const c=i<0?cmd:cmd.slice(0,i),pl=i<0?'':cmd.slice(i+1);
+  SW.c.publish('cmnd/'+S.swTopic+'/'+c,pl);log('SAKLAR','→ '+cmd);return true;
+ }
+ if(!S.swIp){swMsg('Isi IP saklar dulu.');return null}
+ const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),5000);
+ try{
+  const r=await fetch('http://'+S.swIp+'/cm?cmnd='+encodeURIComponent(cmd),{signal:ctl.signal});clearTimeout(to);
+  const j=await r.json();
+  const v=j.POWER!==undefined?j.POWER:j.POWER1;if(v!==undefined)swGot(v);
+  log('SAKLAR','← '+JSON.stringify(j).slice(0,80));return j;
+ }catch(e){
+  clearTimeout(to);
+  swMsg(location.protocol==='https:'?'Halaman HTTPS tidak boleh akses http://IP. Pakai mode Internet (MQTT).':'Saklar tidak terjangkau di '+S.swIp);
+  return null;
+ }
+}
+function swPower(a){
+ const m=Math.floor(+$('swMin').value||0);
+ let cmd;
+ if(a==='TOGGLE')cmd='Power Toggle';
+ else if(a==='ON'&&m>0)cmd='Backlog PulseTime1 '+Math.min(100+m*60,64900)+'; Power On';
+ else cmd='Backlog PulseTime1 0; Power '+(a==='ON'?'On':'Off');
+ swRun(cmd).then(r=>swMsg(r?(a==='ON'&&m>0?'Dinyalakan, otomatis mati '+m+' menit lagi':'Perintah dikirim'):'Gagal mengirim perintah'));
+}
+function swCheck(d){
+ if(!S.swSchedOn)return;
+ const t=p2(d.getUTCHours())+':'+p2(d.getUTCMinutes());
+ if(t===swLast)return;
+ if(t===S.swOnT){swLast=t;swRun('Backlog PulseTime1 0; Power On')}
+ else if(t===S.swOffT){swLast=t;swRun('Backlog PulseTime1 0; Power Off')}
+}
+
 /* ---------- fungsi ESP ---------- */
 async function checkEsp(){
  $('sysInfo').textContent='Mengecek...';
@@ -654,7 +843,7 @@ function saveSettings(send){
  readUI();persist();
  if(send)post('/api/settings',S).then(r=>alert(r?'Tersimpan & terkirim ke ESP32':'Tersimpan di HP. ESP32 tidak terjangkau.'))
 }
-function resetAll(){localStorage.clear();S=Object.assign({},DEF);alarms=[];loadUI();renderAlarms()}
+function resetAll(){localStorage.clear();S=Object.assign({},DEF);alarms=[];loadUI();renderAlarms();SW.on=null;swShow()}
 
 function syncPhoneTime(){
  timeOffsetMs=0;
@@ -704,6 +893,7 @@ function startPlay(){
  const s=+S.surah,max=SURAH[s-1].c;
  const a=Math.min(Math.max(+S.ayah||1,1),max),e=Math.min(Math.max(+S.ayahEnd||a,a),max);
  q={s,a,e,rep:Math.max(+S.repeat||1,1),left:Math.max(+S.repeat||1,1),on:true};
+ if(S.swAuto)swRun('Backlog PulseTime1 0; Power On');
  playCur();
 }
 function playCur(){
@@ -723,6 +913,7 @@ function stopPlay(done){
  q.on=false;audio.pause();audio.currentTime=0;
  $('nowPlaying').textContent=done===true?'Selesai':'Berhenti';
  if($('playEsp').checked)api('/api/stop');
+ if(S.swAuto)swRun('Backlog PulseTime1 0; Power Off');
 }
 function nextAyah(){if(!q.on)return;const max=SURAH[q.s-1].c;if(q.a<max){q.a++;q.left=q.rep;if(q.a>q.e)q.e=q.a;playCur()}}
 function prevAyah(){if(!q.on)return;if(q.a>1){q.a--;q.left=q.rep;playCur()}}
@@ -784,7 +975,12 @@ const TESTS=[
   return c.length+' endpoint OK'}},
  {n:'Koneksi ESP32 (jalur aktif)',f:async()=>{
   if(S.mode==='sim')return{warn:'Masih simulasi, belum ESP32 asli'};
-  const r=await api('/api/status');if(!r)throw'Tidak ada balasan ('+S.mode+')';return'ESP32 membalas'}}
+  const r=await api('/api/status');if(!r)throw'Tidak ada balasan ('+S.mode+')';return'ESP32 membalas'}},
+ {n:'Saklar (jalur aktif)',f:async()=>{
+  readUI();
+  if(S.swMode==='sim'){await swRun('Power Toggle');return'Simulasi OK'}
+  if(S.swMode==='mqtt'){if(!window.mqtt)return{warn:'Library MQTT belum termuat'};return SW.ok?'Broker terhubung':{warn:'Broker belum terhubung, tekan Sambungkan di menu Saklar'}}
+  return S.swIp?{warn:'IP '+S.swIp+' belum dites, tekan Cek status'}:{warn:'IP saklar masih kosong'}}}
 ];
 $('testList').innerHTML=TESTS.map((t,i)=>`<div class="item" style="cursor:default"><span>${t.n}</span><small id="t${i}">-</small></div>`).join('');
 async function runTests(){
@@ -800,10 +996,11 @@ async function manualCmd(){
 }
 
 /* ---------- start ---------- */
-loadUI();renderAlarms();tick();
+loadUI();renderAlarms();tick();swShow();
 if(S.mode==='sim')setConn(true);
 else if(S.mode==='cloud')cloudConnect();
 else if(S.mode==='wifi')checkEsp();
+if(S.swMode==='mqtt'&&S.swTopic&&S.swTopic.length>=6)swConnect();
 </script>
 </body>
-  </html>
+</html>
